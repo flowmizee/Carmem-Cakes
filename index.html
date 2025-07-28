@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Delícias</title>
+  <title>Divas</title>
   <link rel="icon" type="image/png" href="divas.png">
   <style>
     html, body {
@@ -54,11 +54,32 @@
     }
     .search-button img { height: 36px; width: auto; }
     .categories-container {
-      display: flex; gap: 16px; overflow-x: auto;
-      scroll-behavior: smooth; padding: 8px 16px 16px;
+      display: flex; 
+      gap: 16px; 
+      overflow-x: auto;
+      scroll-behavior: smooth; 
+      padding: 8px 16px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .categories-container::-webkit-scrollbar {
+      height: 4px;
+    }
+    .categories-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    .categories-container::-webkit-scrollbar-thumb {
+      background: #ff69b4;
+      border-radius: 2px;
     }
     .categories-container.hidden::-webkit-scrollbar-thumb { background-color: rgba(204,204,204,0); }
-    .category { cursor: pointer; white-space: nowrap; padding: 8px 0; }
+    .category { 
+      cursor: pointer; 
+      white-space: nowrap; 
+      padding: 10px 0;
+      text-transform: uppercase;
+      font-size: 16px;
+      color: #333;
+    }
 
     #breadcrumb { display: none; background: #fff; border-bottom: 1px solid #eee; padding: 8px 16px; }
     #breadcrumb .path { font-size: 14px; color: #007bff; cursor: pointer; text-decoration: underline; }
@@ -128,7 +149,12 @@
       flex: 1;
       min-height: 300px;
     }
-    .category-title { font-size: 24px; font-weight: bold; margin-bottom: 16px; cursor: pointer; }
+    .category-title { 
+      font-size: 24px; 
+      font-weight: bold; 
+      margin: 24px 0 16px;
+      text-transform: uppercase;
+    }
     .produtos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
     .produto { cursor: pointer; }
     .produto img { width: 100%; height: 240px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
@@ -182,6 +208,9 @@
       }
       .banner-scroll.single-banner img {
         height: 300px;
+      }
+      .category {
+        font-size: 14px;
       }
     }
 
@@ -240,8 +269,8 @@
     </div>
     <div id="cats" class="categories-container">
       <div class="category">MORANGO DO AMOR</div>
-      <div class="category">SALGADOS</div>
       <div class="category">BOLOS</div>
+      <div class="category">SALGADOS</div>
       <div class="category">DOCES</div>
     </div>
   </div>
@@ -250,8 +279,8 @@
     <div class="photo-scroll-wrapper">
       <div class="photo-scroll">
         <div class="photo-item" data-category="MORANGO DO AMOR"><div class="photo-img"><img src="morango.webp" alt="Morango do Amor"></div><div class="label">Morango do Amor</div></div>
-        <div class="photo-item" data-category="SALGADOS"><div class="photo-img"><img src="salgados.webp" alt="Salgados"></div><div class="label">Salgados</div></div>
         <div class="photo-item" data-category="BOLOS"><div class="photo-img"><img src="bolos.webp" alt="Bolos"></div><div class="label">Bolos</div></div>
+        <div class="photo-item" data-category="SALGADOS"><div class="photo-img"><img src="salgados.webp" alt="Salgados"></div><div class="label">Salgados</div></div>
         <div class="photo-item" data-category="DOCES"><div class="photo-img"><img src="doces.webp" alt="Doces"></div><div class="label">Doces</div></div>
       </div>
     </div>
@@ -274,8 +303,8 @@
       <div id="banner-scroll" class="banner-scroll"></div>
     </div>
 
-    <div class="produtos-wrapper" id="produtos-container">
-      <!-- As categorias serão inseridas dinamicamente aqui -->
+    <div class="produtos-wrapper" id="produtos-wrapper">
+      <!-- As categorias e produtos serão renderizados dinamicamente aqui -->
     </div>
   </div>
 
@@ -340,14 +369,9 @@
     const headerCountEl = breadcrumbEl.querySelector('.header-row .count');
     const searchInput = document.querySelector('.search-input');
     const searchButton = document.querySelector('.search-button');
-    const produtosContainer = document.getElementById('produtos-container');
+    const produtosWrapper = document.getElementById('produtos-wrapper');
 
-    let allBanners = [], allProdutos = [], categorizedProducts = {
-      'MORANGO DO AMOR': [],
-      'SALGADOS': [],
-      'BOLOS': [],
-      'DOCES': []
-    };
+    let allBanners = [], allProdutos = [], categorizedProducts = {};
 
     catsEl.addEventListener('scroll', () => {
       catsEl.classList.remove('hidden');
@@ -363,9 +387,9 @@
     }
 
     const categoryMap = {
-      'MORANGO DO AMOR': ['morango', 'amor', 'morango do amor'],
-      'SALGADOS': ['salgado', 'salgados', 'salgadinho', 'salgadinhos'],
+      'MORANGO DO AMOR': ['morango', 'morango do amor', 'morangos'],
       'BOLOS': ['bolo', 'bolos', 'torta', 'tortas'],
+      'SALGADOS': ['salgado', 'salgados', 'salgadinho', 'salgadinhos'],
       'DOCES': ['doce', 'doces', 'sobremesa', 'sobremesas']
     };
 
@@ -383,23 +407,42 @@
       });
     }
 
+    function categorizeProducts() {
+      categorizedProducts = {
+        'MORANGO DO AMOR': [],
+        'BOLOS': [],
+        'SALGADOS': [],
+        'DOCES': []
+      };
+
+      allProdutos.forEach(product => {
+        for (const [category, terms] of Object.entries(categoryMap)) {
+          if (containsAnyTerm(product.nome, terms)) {
+            categorizedProducts[category].push(product);
+            break;
+          }
+        }
+      });
+
+      // Remove categorias vazias
+      for (const category in categorizedProducts) {
+        if (categorizedProducts[category].length === 0) {
+          delete categorizedProducts[category];
+        }
+      }
+    }
+
     fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRpRIMaL2mtK3AyrckDd8DI9cZIWZX17I8bB-oUidxXWa60sD7S1HvHE-9cpPUTFJVSpPY7d7CSIzpc/pub?output=csv')
       .then(res => res.text())
       .then(csv => {
-        const lines = csv.split('\n').slice(1);
+        const lines = csv.split('\n').slice(1); // Remove header
         const bannerContainer = document.getElementById('banner-scroll');
 
-        // Limpa banners antigos
+        // Limpa banners e produtos antigos
         allBanners = [];
         allProdutos = [];
-        categorizedProducts = {
-          'MORANGO DO AMOR': [],
-          'SALGADOS': [],
-          'BOLOS': [],
-          'DOCES': []
-        };
         
-        // Processa apenas a primeira linha para banners
+        // Processa banners (primeira linha)
         if (lines.length > 0) {
           const firstLine = lines[0].split(',');
           if (firstLine[0]?.trim() && firstLine[0].trim() !== 'Banner 1') {
@@ -410,14 +453,12 @@
           }
         }
 
-        // Processa produtos (todas as linhas exceto cabeçalho)
+        // Processa produtos (todas as linhas)
         lines.forEach((line, index) => {
-          if (index === 0) return; // Pula cabeçalho
-          
           const cells = line.split(',');
-          const estoque = cells[6]?.trim(); // Campo de estoque (última coluna)
+          const estoque = cells[7]?.trim();
           
-          // Verifica se o produto está disponível (estoque diferente de 0)
+          // Ignora produtos com estoque = 0
           if (estoque === '0') return;
           
           const productName = cells[2]?.trim();
@@ -435,22 +476,14 @@
           };
 
           allProdutos.push(product);
-          
-          // Classifica o produto nas categorias
-          for (const [category, terms] of Object.entries(categoryMap)) {
-            if (containsAnyTerm(productName, terms)) {
-              categorizedProducts[category].push(product);
-              break; // Um produto pode pertencer apenas a uma categoria
-            }
-          }
         });
 
-        console.log('Produtos carregados:', allProdutos);
-        console.log('Produtos por categoria:', categorizedProducts);
+        // Categoriza os produtos
+        categorizeProducts();
 
+        // Renderiza banners
         bannerContainer.innerHTML = '';
 
-        // Renderiza banners corretamente
         if (allBanners.length === 1) {
           bannerContainer.classList.add('single-banner');
           const img = document.createElement('img');
@@ -462,14 +495,14 @@
         } else if (allBanners.length === 2) {
           bannerContainer.classList.add('scrolling');
           
-          // Adiciona apenas os 2 banners (sem duplicar)
+          // Adiciona os 2 banners
           allBanners.forEach(url => {
             const img = document.createElement('img');
             img.src = url;
             bannerContainer.appendChild(img);
           });
           
-          // Adiciona cópias para criar o efeito de loop contínuo
+          // Adiciona cópias para criar o efeito de loop
           allBanners.forEach(url => {
             const img = document.createElement('img');
             img.src = url;
@@ -477,22 +510,79 @@
           });
         }
 
+        // Renderiza produtos por categoria
         renderCategorizedProducts();
       })
       .catch(error => {
         console.error('Erro ao carregar dados:', error);
-        produtosContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Erro ao carregar produtos. Por favor, tente novamente mais tarde.</div>';
+        produtosWrapper.innerHTML = '<div style="text-align: center; padding: 20px;">Erro ao carregar produtos. Por favor, tente novamente mais tarde.</div>';
       });
 
-    function renderProdutos(list, container) {
-      container.innerHTML = '';
+    function renderCategorizedProducts() {
+      produtosWrapper.innerHTML = '';
+      
+      for (const [category, products] of Object.entries(categorizedProducts)) {
+        if (products.length === 0) continue;
+        
+        const categorySection = document.createElement('div');
+        categorySection.className = 'category-section';
+        
+        const title = document.createElement('div');
+        title.className = 'category-title';
+        title.textContent = category;
+        title.addEventListener('click', () => {
+          document.querySelector('.photo-scroll-wrapper').style.display = 'none';
+          document.querySelector('.image-scroll-wrapper').style.display = 'none';
+          document.querySelector('.banner-scroll-wrapper').style.display = 'none';
+          renderProdutos(products);
+          showBreadcrumb(category, products);
+        });
+        
+        const grid = document.createElement('div');
+        grid.className = 'produtos-grid';
+        
+        // Limita a exibir 4 produtos por categoria na página inicial
+        const productsToShow = products.slice(0, 4);
+        
+        productsToShow.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'produto';
+          div.addEventListener('click', () => {
+            const params = new URLSearchParams();
+            params.set('produto', p.nome);
+            params.set('imagem', encodeURIComponent(p.imagem));
+            params.set('descricao', p.descricao);
+            params.set('preco', p.preco);
+            params.set('mensagem', p.mensagem);
+            location.href = `produto.html?${params.toString()}`;
+          });
+          div.innerHTML = `
+            <img src="${p.imagem}" alt="${p.nome}">
+            <div class="nome">${p.nome}</div>
+            <div class="preco">${p.preco}</div>
+            <div class="extra">${p.mensagem}</div>
+          `;
+          grid.appendChild(div);
+        });
+        
+        categorySection.appendChild(title);
+        categorySection.appendChild(grid);
+        produtosWrapper.appendChild(categorySection);
+      }
+    }
+
+    function renderProdutos(list) {
+      produtosWrapper.innerHTML = '';
       
       const validProducts = list.filter(p => p.nome && p.imagem);
       
       if (validProducts.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Nenhum produto encontrado</div>';
+        produtosWrapper.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Nenhum produto encontrado</div>';
         return;
       }
+      
+      const grid = document.createElement('div');
+      grid.className = 'produtos-grid';
       
       validProducts.forEach(p => {
         const div = document.createElement('div');
@@ -507,67 +597,26 @@
           location.href = `produto.html?${params.toString()}`;
         });
         div.innerHTML = `
-          <img src="${p.imagem}" alt="${p.nome}" onerror="this.src='placeholder.jpg'">
+          <img src="${p.imagem}" alt="${p.nome}">
           <div class="nome">${p.nome}</div>
           <div class="preco">${p.preco}</div>
           <div class="extra">${p.mensagem}</div>
         `;
-        container.appendChild(div);
+        grid.appendChild(div);
       });
-    }
-
-    function renderCategorizedProducts() {
-      produtosContainer.innerHTML = '';
       
-      // Ordem das categorias a serem exibidas
-      const categoriesOrder = ['MORANGO DO AMOR', 'SALGADOS', 'BOLOS', 'DOCES'];
-      
-      categoriesOrder.forEach(category => {
-        const products = categorizedProducts[category];
-        if (products.length === 0) return;
-        
-        const section = document.createElement('div');
-        section.className = 'category-section';
-        
-        const title = document.createElement('div');
-        title.className = 'category-title';
-        title.textContent = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-        title.addEventListener('click', () => {
-          document.querySelector('.photo-scroll-wrapper').style.display = 'none';
-          document.querySelector('.image-scroll-wrapper').style.display = 'none';
-          document.querySelector('.banner-scroll-wrapper').style.display = 'none';
-          renderProdutos(products, produtosContainer);
-          showBreadcrumb(category, products);
-        });
-        
-        const grid = document.createElement('div');
-        grid.className = 'produtos-grid';
-        
-        // Limita a exibir apenas 4 produtos por categoria na página inicial
-        const limitedProducts = products.slice(0, 4);
-        renderProdutos(limitedProducts, grid);
-        
-        section.appendChild(title);
-        section.appendChild(grid);
-        produtosContainer.appendChild(section);
-      });
+      produtosWrapper.appendChild(grid);
     }
 
     function showBreadcrumb(name, list) {
       pathEl.textContent = 'Início';
-      crumbNameEl.textContent = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+      crumbNameEl.textContent = name;
       headerTitleEl.textContent = name.toUpperCase();
       
       const validProducts = list.filter(p => p.nome && p.imagem);
       headerCountEl.textContent = `${validProducts.length} produto${validProducts.length !== 1 ? 's' : ''}`;
       
       breadcrumbEl.style.display = 'block';
-      produtosContainer.innerHTML = '';
-      
-      const grid = document.createElement('div');
-      grid.className = 'produtos-grid';
-      renderProdutos(list, grid);
-      produtosContainer.appendChild(grid);
     }
 
     function resetToHomePage() {
@@ -591,7 +640,7 @@
         document.querySelector('.photo-scroll-wrapper').style.display = 'none';
         document.querySelector('.image-scroll-wrapper').style.display = 'none';
         document.querySelector('.banner-scroll-wrapper').style.display = 'none';
-        renderProdutos(filtered, produtosContainer);
+        renderProdutos(filtered);
         showBreadcrumb(name, filtered);
       });
     });
@@ -603,7 +652,7 @@
         document.querySelector('.photo-scroll-wrapper').style.display = 'none';
         document.querySelector('.image-scroll-wrapper').style.display = 'none';
         document.querySelector('.banner-scroll-wrapper').style.display = 'none';
-        renderProdutos(filtered, produtosContainer);
+        renderProdutos(filtered);
         showBreadcrumb(category, filtered);
       });
     });
@@ -627,7 +676,7 @@
       document.querySelector('.photo-scroll-wrapper').style.display = 'none';
       document.querySelector('.image-scroll-wrapper').style.display = 'none';
       document.querySelector('.banner-scroll-wrapper').style.display = 'none';
-      renderProdutos(filtered, produtosContainer);
+      renderProdutos(filtered);
       showBreadcrumb(term, filtered);
     });
 
@@ -642,7 +691,7 @@
       document.querySelector('.photo-scroll-wrapper').style.display = term ? 'none' : '';
       document.querySelector('.image-scroll-wrapper').style.display = term ? 'none' : '';
       document.querySelector('.banner-scroll-wrapper').style.display = term ? 'none' : '';
-      renderProdutos(filtered, produtosContainer);
+      renderProdutos(filtered);
       showBreadcrumb(term || 'Resultados', filtered);
     });
 
@@ -650,14 +699,11 @@
     allProductsLink.addEventListener('click', e => {
       e.preventDefault();
       overlay.classList.remove('open');
-      const sortedList = [...allProdutos].sort((a, b) =>
-        a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' })
-      );
       document.querySelector('.photo-scroll-wrapper').style.display = 'none';
       document.querySelector('.image-scroll-wrapper').style.display = 'none';
       document.querySelector('.banner-scroll-wrapper').style.display = 'none';
-      renderProdutos(sortedList, produtosContainer);
-      showBreadcrumb('Todos os Produtos', sortedList);
+      renderProdutos(allProdutos);
+      showBreadcrumb('Todos os Produtos', allProdutos);
     });
   </script>
 </body>
