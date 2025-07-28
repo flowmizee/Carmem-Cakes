@@ -12,9 +12,9 @@
       height: 100%;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: Arial, sans-serif; 
-      background-color: #fff; 
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -28,21 +28,21 @@
       z-index: 1000;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      padding: 8px 16px; 
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
     }
-    .menu-icon { 
-      font-size: 28px; 
-      cursor: pointer; 
+    .menu-icon {
+      font-size: 28px;
+      cursor: pointer;
       position: relative;
     }
-    .bag-icon { 
+    .bag-icon {
       width: 56px;
       height: 56px;
-      cursor: pointer; 
+      cursor: pointer;
       position: relative;
       display: flex;
       align-items: center;
@@ -63,46 +63,46 @@
       border-radius: 12px;
       display: none;
     }
-    .logo img { 
-      max-height: 80px; 
-      width: auto; 
-      cursor: pointer; 
+    .logo img {
+      max-height: 80px;
+      width: auto;
+      cursor: pointer;
     }
-    .search-container { 
-      display: flex; 
-      width: 100%; 
-      padding: 0 16px 16px; 
+    .search-container {
+      display: flex;
+      width: 100%;
+      padding: 0 16px 16px;
     }
     .search-input {
-      flex: 1; 
+      flex: 1;
       padding: 12px;
-      border: 1px solid #ccc; 
+      border: 1px solid #ccc;
       border-radius: 8px 0 0 8px;
-      outline: none; 
-      font-size: 16px; 
+      outline: none;
+      font-size: 16px;
       background-color: #f2f2f2;
     }
     .search-button {
-      background-color: #dfb33a; 
+      background-color: #dfb33a;
       border: none;
-      padding: 0 16px; 
+      padding: 0 16px;
       border-radius: 0 8px 8px 0;
-      cursor: pointer; 
-      display: flex; 
-      align-items: center; 
+      cursor: pointer;
+      display: flex;
+      align-items: center;
       justify-content: center;
     }
-    .search-button img { 
-      height: 36px; 
-      width: auto; 
+    .search-button img {
+      height: 36px;
+      width: auto;
     }
-    
+
     /* CATEGORIAS TEXTO - COM ANIMAÇÃO DE SCROLL */
     .categories-container {
-      display: flex; 
-      gap: 16px; 
+      display: flex;
+      gap: 16px;
       overflow-x: auto;
-      scroll-behavior: smooth; 
+      scroll-behavior: smooth;
       padding: 8px 16px 16px;
       -webkit-overflow-scrolling: touch;
     }
@@ -128,9 +128,9 @@
       border-radius: 3px;
       transition: all 0.3s ease;
     }
-    .category { 
-      cursor: pointer; 
-      white-space: nowrap; 
+    .category {
+      cursor: pointer;
+      white-space: nowrap;
       padding: 12px 0;
       font-size: 18px;
       font-weight: 500;
@@ -144,30 +144,68 @@
 
     /* ESTILOS DO PRODUTO */
     .main-content {
-      margin-top: 220px;
+      margin-top: 220px; /* Adjusted to accommodate fixed header and potential breadcrumb */
       flex: 1;
       display: flex;
       flex-direction: column;
     }
-    
-    .produto-container { 
-      padding: 16px; 
+    .produto-container {
+      padding: 16px;
       min-height: 300px;
-    } 
+    }
     .produtos-wrapper {
-      display: none;
+      display: none; /* Hidden by default, shown when displaying product lists */
       padding: 16px;
       background-color: #f2f2f2;
+      flex: 1; /* Allow it to grow and fill space */
     }
-    .breadcrumb-list { 
-      font-size: 14px; 
-      color: #666; 
-      margin-bottom: 16px; 
-    } 
-    .breadcrumb-list a { 
-      color: #007bff; 
-      text-decoration: none; 
-    } 
+    /* Breadcrumb styles from index.html */
+    #breadcrumb {
+      display: none; /* Hidden by default */
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      padding: 8px 16px;
+    }
+    #breadcrumb .path {
+      font-size: 14px;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    #breadcrumb .separator {
+      font-size: 14px;
+      color: #555;
+      margin: 0 8px;
+    }
+    #breadcrumb .crumbName {
+      font-size: 14px;
+      text-transform: capitalize;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .header-row .title {
+      font-weight: bold;
+      font-size: 20px;
+      text-transform: uppercase;
+    }
+    .header-row .count {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .breadcrumb-list {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    .breadcrumb-list a {
+      color: #007bff;
+      text-decoration: none;
+    }
     .carousel {
       position: relative;
       margin-bottom: 16px;
@@ -177,148 +215,159 @@
       height: 350px;
       object-fit: cover;
       border-radius: 8px;
-    } 
-    .produto-nome { 
-      font-size: 24px; 
-      font-weight: bold; 
-      color: #333; 
-      margin-bottom: 8px; 
-    } 
-    .produto-preco { 
-      font-size: 24px; 
-      font-weight: bold; 
-      color: #000; 
-      margin-bottom: 8px; 
-    } 
-    .produto-extra { 
-      font-size: 15px; 
-      color: #007bff; 
-      margin-bottom: 16px; 
-    } 
-    .purchase-controls { 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      margin-bottom: 16px; 
-    } 
-    .qty-controls { 
-      display: flex; 
-      align-items: center; 
-      border: 1px solid #ccc; 
-      border-radius: 8px; 
-    } 
-    .qty-controls button { 
-      background: none; 
-      border: none; 
-      font-size: 18px; 
-      padding: 8px 12px; 
-      cursor: pointer; 
-    } 
-    .qty-controls .qty { 
-      padding: 0 12px; 
-      font-size: 18px; 
-      min-width: 24px; 
-      text-align: center; 
-    } 
-    .buy-btn { 
-      flex: 1; 
-      background-color: #dfb33a; 
-      color: #fff; 
-      border: none; 
-      padding: 12px; 
-      border-radius: 8px; 
-      font-size: 16px; 
-      cursor: pointer; 
-    } 
-    .info-section { 
-      font-size: 14px; 
-      color: #555; 
-      margin-bottom: 4px; 
-    } 
-    .descricao { 
-      font-size: 14px; 
-      color: #333; 
-      margin-top: 8px; 
-      line-height: 1.5; 
-    } 
-    hr { 
-      border: none; 
-      border-top: 1px solid #ddd; 
-      margin: 16px 0; 
     }
-    .produtos-grid { 
-      display: grid; 
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 24px; 
+    .produto-nome {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
     }
-    .produto { 
-      cursor: pointer; 
+    .produto-preco {
+      font-size: 24px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 8px;
     }
-    .produto img { 
-      width: 100%; 
-      height: 240px; 
-      object-fit: cover; 
-      border-radius: 8px; 
-      margin-bottom: 12px; 
-    }
-    .produto .nome { 
-      font-size: 14px; 
-      font-weight: bold; 
-      margin-bottom: 8px; 
-    }
-    .produto .preco { 
-      font-size: 20px; 
-      font-weight: bold; 
-      margin-bottom: 8px; 
-    }
-    .produto .extra { 
-      font-size: 13px; 
+    .produto-extra {
+      font-size: 15px;
       color: #007bff;
-      margin-bottom: 8px; 
+      margin-bottom: 16px;
+    }
+    .purchase-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .qty-controls button {
+      background: none;
+      border: none;
+      font-size: 18px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .qty-controls .qty {
+      padding: 0 12px;
+      font-size: 18px;
+      min-width: 24px;
+      text-align: center;
+    }
+    .buy-btn {
+      flex: 1;
+      background-color: #dfb33a;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .info-section {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .descricao {
+      font-size: 14px;
+      color: #333;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 16px 0;
+    }
+    .produtos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .produto {
+      cursor: pointer;
+    }
+    .produto img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .produto .nome {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .produto .preco {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .produto .extra {
+      font-size: 13px;
+      color: #007bff;
+      margin-bottom: 8px;
     }
     .no-products {
       grid-column: 1 / -1;
       text-align: center;
       padding: 20px;
     }
+    .category-section {
+      margin-bottom: 32px; /* Space between category sections */
+    }
+    .category-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 24px 0 16px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
 
     /* MENU OVERLAY */
-    #overlayMenu { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: #fff; 
-      transform: translateX(-100%); 
-      transition: transform 0.3s ease; 
-      z-index: 2000; 
-      padding: 60px 20px; 
-      display: flex; 
-      flex-direction: column; 
+    #overlayMenu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 2000;
+      padding: 60px 20px;
+      display: flex;
+      flex-direction: column;
     }
-    #overlayMenu.open { 
-      transform: translateX(0); 
+    #overlayMenu.open {
+      transform: translateX(0);
     }
-    #overlayMenu .close-btn { 
-      position: absolute; 
-      top: 16px; 
-      right: 16px; 
-      font-size: 32px; 
-      cursor: pointer; 
+    #overlayMenu .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 32px;
+      cursor: pointer;
     }
-    #overlayMenu nav { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 0; 
-      margin-top: 20px; 
+    #overlayMenu nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 20px;
     }
-    #overlayMenu nav a { 
-      font-size: 20px; 
-      color: #000; 
-      text-decoration: none; 
-      text-transform: uppercase; 
-      padding: 8px 0; 
+    #overlayMenu nav a {
+      font-size: 20px;
+      color: #000;
+      text-decoration: none;
+      text-transform: uppercase;
+      padding: 8px 0;
     }
 
     /* FOOTER */
@@ -376,7 +425,7 @@
   <div id="overlayMenu">
     <div class="close-btn">&times;</div>
     <nav>
-      <a href="index.html">Início</a>
+      <a href="index.html" id="home-link">Início</a>
       <a href="#" id="all-products-link">Produtos</a>
       <a href="contato.html">Contato</a>
     </nav>
@@ -406,9 +455,20 @@
   </div>
 
   <div class="main-content">
+    <!-- Breadcrumb section (initially hidden) -->
+    <div id="breadcrumb">
+      <span class="path">Início</span>
+      <span class="separator">&gt;</span>
+      <span class="crumbName"></span>
+      <div class="header-row">
+        <span class="title"></span>
+        <span class="count"></span>
+      </div>
+    </div>
+
     <!-- Área do produto único -->
     <div class="produto-container" id="produto"></div>
-    
+
     <!-- Área do grid de produtos (oculta inicialmente) -->
     <div id="produtos-wrapper" class="produtos-wrapper"></div>
   </div>
@@ -461,11 +521,11 @@
 
     document.addEventListener('DOMContentLoaded', renderCartCount);
     // ––––––––––––––––––––––––––––––––––
-    
+
     // Configuração da barra de rolagem com efeito fade
     let scrollTimeout;
     let isFirstInteraction = true;
-    
+
     const catsEl = document.getElementById('cats');
     if (catsEl) {
       catsEl.addEventListener('scroll', () => {
@@ -473,7 +533,7 @@
           isFirstInteraction = false;
           catsEl.classList.add('hidden');
         }
-        
+
         catsEl.classList.remove('hidden');
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
@@ -486,15 +546,22 @@
     const overlay = document.getElementById('overlayMenu');
     document.querySelector('.menu-icon').onclick = () => overlay.classList.add('open');
     overlay.querySelector('.close-btn').onclick = () => overlay.classList.remove('open');
-    
-    // capturar produto específico se vier pela URL
-    const params = new URLSearchParams(window.location.search);
-    const nomeProduto = decodeURIComponent(params.get('produto') || '');
-    const imagemProduto = params.get('imagem') ? decodeURIComponent(params.get('imagem')) : '';
-    const descricaoProduto = params.get('descricao') ? decodeURIComponent(params.get('descricao')) : '';
-    const precoProduto = params.get('preco') ? decodeURIComponent(params.get('preco')) : '';
-    const mensagemProduto = params.get('mensagem') ? decodeURIComponent(params.get('mensagem')) : '';
-    
+
+    // Breadcrumb elements
+    const breadcrumbEl = document.getElementById('breadcrumb');
+    const pathEl = breadcrumbEl.querySelector('.path');
+    const crumbNameEl = breadcrumbEl.querySelector('.crumbName');
+    const headerTitleEl = breadcrumbEl.querySelector('.header-row .title');
+    const headerCountEl = breadcrumbEl.querySelector('.header-row .count');
+
+    // Product display containers
+    const produtoContainer = document.getElementById('produto');
+    const produtosWrapper = document.getElementById('produtos-wrapper');
+
+    // Search elements
+    const searchInput = document.querySelector('.search-input');
+    const searchButton = document.querySelector('.search-button');
+
     let allProdutos = [];
     let categorizedProducts = {};
 
@@ -549,62 +616,72 @@
       }
     }
 
-    // Se vier com parâmetros, mostra o produto único imediatamente
-    if (nomeProduto) {
-      showProduto({
-        nome: nomeProduto,
-        imagem: imagemProduto,
-        descricao: descricaoProduto,
-        preco: precoProduto,
-        mensagem: mensagemProduto
-      });
-    }
+    // Function to render categorized products (like homepage in index.html)
+    function renderCategorizedProducts() {
+      produtosWrapper.innerHTML = '';
+      produtoContainer.style.display = 'none';
+      produtosWrapper.style.display = 'block';
+      breadcrumbEl.style.display = 'none'; // Hide breadcrumb for this view
 
-    // Carrega os produtos da planilha
-    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRpRIMaL2mtK3AyrckDd8DI9cZIWZX17I8bB-oUidxXWa60sD7S1HvHE-9cpPUTFJVSpPY7d7CSIzpc/pub?output=csv')
-      .then(r => r.text())
-      .then(csv => {
-        const lines = csv.split('\n').slice(1);
-    
-        // popula allProdutos
-        lines.forEach(line => {
-          const c = line.split(',');
-          if (!c[2]?.trim()) return;
-          
-          const product = {
-            nome: c[2].trim(),
-            imagem: c[3]?.trim() || '',
-            descricao: c[10]?.trim() || '',
-            preco: c[11]?.trim() || '',
-            mensagem: c[12]?.trim() || ''
-          };
-          
-          allProdutos.push(product);
-          
-          // Se for o produto da URL e ainda não tiver sido exibido
-          if (nomeProduto && product.nome === nomeProduto && !document.getElementById('produto').innerHTML) {
-            showProduto(product);
-          }
+      for (const [category, products] of Object.entries(categorizedProducts)) {
+        if (products.length === 0) continue;
+
+        const categorySection = document.createElement('div');
+        categorySection.className = 'category-section';
+
+        const title = document.createElement('div');
+        title.className = 'category-title';
+        title.textContent = category;
+        title.addEventListener('click', () => {
+          renderProdutos(products);
+          showBreadcrumb(category, products);
         });
 
-        categorizeProducts();
-      })
-      .catch(error => {
-        console.error('Erro ao carregar produtos:', error);
-      });
+        const grid = document.createElement('div');
+        grid.className = 'produtos-grid';
+
+        const productsToShow = products.slice(0, 4); // Show only first 4 products for homepage view
+
+        productsToShow.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'produto';
+          div.addEventListener('click', () => {
+            const params = new URLSearchParams();
+            params.set('produto', p.nome);
+            params.set('imagem', encodeURIComponent(p.imagem));
+            params.set('descricao', p.descricao);
+            params.set('preco', p.preco);
+            params.set('mensagem', p.mensagem);
+            location.href = `produto.html?${params.toString()}`;
+          });
+          div.innerHTML = `
+            <img src="${p.imagem}" alt="${p.nome}">
+            <div class="nome">${p.nome}</div>
+            <div class="preco">${p.preco}</div>
+            ${p.mensagem ? `<div class="extra">${p.mensagem}</div>` : ''}
+          `;
+          grid.appendChild(div);
+        });
+
+        categorySection.appendChild(title);
+        categorySection.appendChild(grid);
+        produtosWrapper.appendChild(categorySection);
+      }
+    }
 
     // renderiza produto único
     function showProduto(product) {
-      const container = document.getElementById('produto');
-      document.getElementById('produtos-wrapper').style.display = 'none';
-      container.style.display = 'block';
-      
+      produtoContainer.style.display = 'block';
+      produtosWrapper.style.display = 'none'; // Hide product grid
+
       const desc = product.descricao || '';
-      const preco = (product.preco||'').replace(/[^\d.,]/g,'').replace('.', ',');
+      const preco = (product.preco || '').replace(/[^\d.,]/g, '').replace('.', ',');
       const extra = product.mensagem || '';
 
-      let html = `<div class="breadcrumb-list"><a href="index.html">Início</a> &gt; ${product.nome}</div>`;
-      html += `
+      // Update breadcrumb for single product view
+      showBreadcrumb(product.nome, [], true); // Pass true to indicate single product, no count
+
+      let html = `
         <div class="carousel">
           <img src="${product.imagem || ''}" alt="${product.nome}">
         </div>
@@ -612,7 +689,7 @@
         <div class="produto-preco">R$ ${preco}</div>
         ${extra ? `<div class="produto-extra">${extra}</div>` : ''}
       `;
-      
+
       html += `
         <div class="purchase-controls">
           <div class="qty-controls">
@@ -628,19 +705,19 @@
         <div class="info-section">Cuidamos do seu pedido como se fosse nosso.</div><hr>
         ${desc ? `<strong>Descrição</strong><div class="descricao">${desc}</div>` : ''}
       `;
-      
-      container.innerHTML = html;
+
+      produtoContainer.innerHTML = html;
 
       // Configura os controles de quantidade
       let qty = 1;
-      document.getElementById('decrease').onclick = () => { 
-        if(qty > 1) qty--; 
-        document.getElementById('quantity').textContent = qty; 
+      document.getElementById('decrease').onclick = () => {
+        if (qty > 1) qty--;
+        document.getElementById('quantity').textContent = qty;
       };
-      
-      document.getElementById('increase').onclick = () => { 
-        qty++; 
-        document.getElementById('quantity').textContent = qty; 
+
+      document.getElementById('increase').onclick = () => {
+        qty++;
+        document.getElementById('quantity').textContent = qty;
       };
 
       // Configura o botão de compra
@@ -653,49 +730,47 @@
         // 2. Adiciona/atualiza item no carrinho
         const items = getCartItems();
         const existente = items.find(i => i.nome === nome);
-        
+
         if (existente) {
           existente.quantidade += quantidade;
         } else {
-          items.push({ 
-            nome, 
-            preco: precoText, 
+          items.push({
+            nome,
+            preco: precoText,
             quantidade,
             imagem: product.imagem
           });
         }
-        
+
         setCartItems(items);
-        
+
         // 3. Feedback visual
         const btn = document.querySelector('.buy-btn');
         btn.textContent = '✓ ADICIONADO';
         btn.style.backgroundColor = '#4CAF50';
-        
+
         setTimeout(() => {
           btn.textContent = 'COMPRAR';
           btn.style.backgroundColor = '#dfb33a';
         }, 2000);
       };
     }
-    
+
+    // renderiza lista de produtos (grid)
     function renderProdutos(list) {
-      const container = document.getElementById('produto');
-      const produtosWrapper = document.getElementById('produtos-wrapper');
-      
-      container.style.display = 'none';
-      produtosWrapper.style.display = 'block';
-      
+      produtoContainer.style.display = 'none'; // Hide single product view
+      produtosWrapper.style.display = 'block'; // Show product grid
+
       const validProducts = list.filter(p => p.nome && p.imagem);
-      
+
       if (validProducts.length === 0) {
         produtosWrapper.innerHTML = '<div class="no-products">Nenhum produto encontrado</div>';
         return;
       }
-      
+
       const grid = document.createElement('div');
       grid.className = 'produtos-grid';
-      
+
       validProducts.forEach(p => {
         const div = document.createElement('div');
         div.className = 'produto';
@@ -716,65 +791,152 @@
         `;
         grid.appendChild(div);
       });
-      
+
       produtosWrapper.innerHTML = '';
       produtosWrapper.appendChild(grid);
     }
 
-    // ao clicar em categoria
+    // Function to show/update the breadcrumb
+    function showBreadcrumb(name, list, isSingleProduct = false) {
+      pathEl.textContent = 'Início';
+      crumbNameEl.textContent = name;
+      headerTitleEl.textContent = name.toUpperCase();
+
+      if (isSingleProduct) {
+        headerCountEl.textContent = ''; // No count for single product
+      } else {
+        const validProducts = list.filter(p => p.nome && p.imagem);
+        headerCountEl.textContent = `${validProducts.length} produto${validProducts.length !== 1 ? 's' : ''}`;
+      }
+
+      breadcrumbEl.style.display = 'block';
+    }
+
+    // Function to reset to the "home" view (categorized products)
+    function resetToHomePage() {
+      breadcrumbEl.style.display = 'none'; // Hide breadcrumb
+      produtoContainer.style.display = 'none'; // Hide single product view
+      produtosWrapper.style.display = 'block'; // Ensure product wrapper is visible
+      renderCategorizedProducts(); // Show categorized products
+    }
+
+    // Carrega os produtos da planilha
+    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRpRIMaL2mtK3AyrckDd8DI9cZIWZX17I8bB-oUidxXWa60sD7S1HvHE-9cpPUTFJVSpPY7d7CSIzpc/pub?output=csv')
+      .then(r => r.text())
+      .then(csv => {
+        const lines = csv.split('\n').slice(1);
+
+        // popula allProdutos
+        lines.forEach(line => {
+          const c = line.split(',');
+          // Ensure product name and image are present and stock is not 0
+          if (!c[2]?.trim() || !c[3]?.trim() || c[7]?.trim() === '0') return;
+
+          const product = {
+            nome: c[2].trim(),
+            imagem: c[3]?.trim() || '',
+            descricao: c[4]?.trim() || '', // Use correct column for description
+            preco: c[5]?.trim() || '',     // Use correct column for price
+            mensagem: c[6]?.trim() || ''   // Use correct column for message
+          };
+
+          allProdutos.push(product);
+        });
+
+        categorizeProducts();
+
+        // If no specific product is requested via URL, show categorized products by default
+        const params = new URLSearchParams(window.location.search);
+        const nomeProduto = decodeURIComponent(params.get('produto') || '');
+
+        if (nomeProduto) {
+          // Find the product in allProdutos to get full details (if available)
+          const productFromData = allProdutos.find(p => normalizeText(p.nome) === normalizeText(nomeProduto));
+          if (productFromData) {
+            showProduto(productFromData);
+          } else {
+            // Fallback if product not found in data, use URL params
+            showProduto({
+              nome: nomeProduto,
+              imagem: params.get('imagem') ? decodeURIComponent(params.get('imagem')) : '',
+              descricao: params.get('descricao') ? decodeURIComponent(params.get('descricao')) : '',
+              preco: params.get('preco') ? decodeURIComponent(params.get('preco')) : '',
+              mensagem: params.get('mensagem') ? decodeURIComponent(params.get('mensagem')) : ''
+            });
+          }
+        } else {
+          resetToHomePage(); // Show categorized products if no specific product URL
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao carregar produtos:', error);
+        produtosWrapper.innerHTML = '<div class="no-products">Erro ao carregar produtos. Por favor, tente novamente mais tarde.</div>';
+        produtosWrapper.style.display = 'block';
+        produtoContainer.style.display = 'none';
+      });
+
+
+    // Event Listeners for navigation and search
+    document.getElementById('home-link').addEventListener('click', function(e) {
+      e.preventDefault();
+      resetToHomePage();
+      overlay.classList.remove('open');
+    });
+
+    document.querySelector('.logo img').addEventListener('click', resetToHomePage);
+    pathEl.addEventListener('click', resetToHomePage); // Click on "Início" in breadcrumb
+
     document.querySelectorAll('.category').forEach(el => {
       el.addEventListener('click', () => {
-        const nome = el.textContent.trim();
-        const filtered = filterByCategory(nome);
+        const name = el.textContent.trim();
+        const filtered = filterByCategory(name);
         renderProdutos(filtered);
+        showBreadcrumb(name, filtered);
       });
     });
-    
-    // busca input
-    const si = document.querySelector('.search-input'),
-          sb = document.querySelector('.search-button');
-    
-    si.addEventListener('input', () => {
-      const term = si.value.trim();
-      if (term === '') {
-        if (nomeProduto) return;
-        window.location.href = 'index.html';
+
+    searchInput.addEventListener('input', () => {
+      const term = searchInput.value.trim();
+      if (!term) {
+        resetToHomePage(); // If search input is empty, go back to home view
         return;
       }
-      
+
       const normalizedTerm = normalizeText(term);
       const filtered = allProdutos.filter(p => {
         const nome = normalizeText(p.nome || '');
         return nome.includes(normalizedTerm);
       });
-      
+
       renderProdutos(filtered);
+      showBreadcrumb(term, filtered);
     });
-    
-    sb.addEventListener('click', () => {
-      const term = si.value.trim();
-      if (term === '') {
-        window.location.href = 'index.html';
+
+    searchButton.addEventListener('click', () => {
+      const term = searchInput.value.trim();
+      if (!term) {
+        resetToHomePage(); // If search button clicked with empty input, go back to home view
         return;
       }
-      
+
       const normalizedTerm = normalizeText(term);
       const filtered = allProdutos.filter(p => {
         const nome = normalizeText(p.nome || '');
         return nome.includes(normalizedTerm);
       });
-      
+
       renderProdutos(filtered);
+      showBreadcrumb(term, filtered);
     });
-    
-    // Link "Produtos" no menu hamburguer
+
     document.getElementById('all-products-link').addEventListener('click', function(e) {
       e.preventDefault();
       overlay.classList.remove('open');
       renderProdutos(allProdutos);
+      showBreadcrumb('Todos os Produtos', allProdutos);
     });
-    
-    // atualiza carrinho ao voltar de outra aba
+
+    // Update cart count when tab visibility changes
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) renderCartCount();
     });
