@@ -26,20 +26,33 @@
     .nav-wrapper { 
       position: sticky; 
       top: 0; 
-      background: #000; 
+      background: #fff; 
       z-index: 1000; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .header { 
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      padding: 12px 16px 8px; 
+      padding: 8px 16px; 
     }
-    .menu-icon, .bag-icon { 
+    .menu-icon { 
       font-size: 28px; 
       cursor: pointer; 
       position: relative; 
-      color: #fff;
+    }
+    .bag-icon {
+      width: 56px;
+      height: 56px;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bag-icon img {
+      width: 100%;
+      height: auto;
     }
     .bag-icon .cart-count {
       position: absolute; 
@@ -56,7 +69,6 @@
       max-height: 80px; 
       width: auto; 
       cursor: pointer; 
-      margin-top: 5px;
     }
     
     /* Estilos da página de contato */
@@ -107,19 +119,19 @@
       margin-right: 12px;
     }
     
-    /* RODAPÉ PRETO */
+    /* RODAPÉ AMARELO */
     .site-footer {
-      background-color: #000;
+      background-color: #dfb33a;
       color: #fff;
       padding: 16px;
-      margin-top: 8px;
+      margin-top: auto;
     }
     .footer-item {
       margin-bottom: 12px;
       font-size: 14px;
     }
     .footer-item.instagram {
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
     .footer-item.instagram img {
       width: 20px;
@@ -141,7 +153,7 @@
       left: 0; 
       width: 100%; 
       height: 100%; 
-      background: #000; 
+      background: #fff; 
       transform: translateX(-100%); 
       transition: transform 0.3s ease; 
       z-index: 2000; 
@@ -156,7 +168,6 @@
       right: 16px; 
       font-size: 32px; 
       cursor: pointer; 
-      color: #fff;
     }
     #overlayMenu nav { 
       display: flex; 
@@ -166,7 +177,7 @@
     }
     #overlayMenu nav a { 
       font-size: 20px; 
-      color: #fff; 
+      color: #000; 
       text-decoration: none; 
       text-transform: uppercase; 
       padding: 8px 0; 
@@ -177,9 +188,8 @@
   <div id="overlayMenu">
     <div class="close-btn">&times;</div>
     <nav>
-      <a href="index.html">INÍCIO</a>
-      <a href="divas-index.html">DIVAS BIJOUXSHOES</a>
-      <a href="miss-index.html">MISS FIT BEACHWEAR</a>
+      <a href="index.html">Início</a>
+      <a href="contato.html">Contato</a>
     </nav>
   </div>
 
@@ -190,7 +200,7 @@
         <img src="logo.webp" alt="Logo">
       </a>
       <a href="carrinho.html" class="bag-icon" id="cart-icon">
-        &#128717;
+        <img src="cart.webp" alt="Carrinho de compras">
         <span class="cart-count" id="cart-count">0</span>
       </a>
     </header>
@@ -203,31 +213,31 @@
     <h1 class="contato-titulo">CONTATO</h1>
     
     <div class="contato-info">
-      Nosso horário de atendimento é de Segunda a Sexta das 09:00 as 19:00 e aos Sábados das 09:00 as 16:00
+      Nosso horário de atendimento é de Segunda a Sábado das 08:00 as 19:00
     </div>
     
     <div class="contato-item">
       <img src="whatsapp.png" alt="WhatsApp">
-      <a href="https://wa.me/5598992124926" target="_blank">5598992124926</a>
+      <a href="https://wa.me/5598982066609" target="_blank">5598982066609</a>
     </div>
     
     <div class="contato-item">
       <img src="telefone.png" alt="Telefone">
-      <a href="tel:98992124926">98992124926</a>
+      <a href="tel:98982066609">98982066609</a>
     </div>
     
     <div class="contato-item">
       <img src="email.png" alt="E-mail">
-      <a href="mailto:flowmize@gmail.com">flowmize@gmail.com</a>
+      <a href="mailto:Carmemcakes91@hotmail.com">Carmemcakes91@hotmail.com</a>
     </div>
     
     <div class="contato-item">
       <img src="localize.png" alt="Localização">
-      Avenida Bahia, Bairro Turu, São Luís - MA, CEP 65066-659
+      Rua Soares Ramos, N° 50, Paulo Ramos - MA, CEP 65716-000
     </div>
   </div>
 
-  <!-- RODAPÉ PRETO -->
+  <!-- RODAPÉ AMARELO -->
   <footer class="site-footer">
     <div class="footer-item instagram">
       <a href="https://www.instagram.com/divasbijouxshoes?igsh=MW55M2QzbTJnaGF4bg==" target="_blank" rel="noopener">
@@ -235,13 +245,13 @@
       </a>
     </div>
     <div class="footer-item">
-      <a href="https://wa.me/5598992124926" target="_blank" rel="noopener">
-        5598992124926
+      <a href="https://wa.me/5598982066609" target="_blank" rel="noopener">
+        5598982066609
       </a>
     </div>
     <div class="footer-item">
-      <a href="tel:+5589982124926">
-        98992124926
+      <a href="tel:+5598982066609">
+        98982066609
       </a>
     </div>
     <div class="footer-item copyright">
