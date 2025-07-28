@@ -535,14 +535,9 @@
         this.value = this.value.replace(/\D/g, '');
       });
 
-      // Enviar pedido - Adaptado para o seu doGet
-      document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+      // Enviar pedido - Versão otimizada
+      document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
-        // Resetar mensagens de erro
-        errorWhatsapp.textContent = '';
-        errorReferencia.textContent = '';
-        errorCidade.textContent = '';
 
         // Validações
         if (cartItems.length === 0) {
@@ -575,20 +570,66 @@
           }
         }
 
-        // Calcular total
-        let subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.preco) * item.quantidade), 0);
+        // 1. Primeiro: Prepara os dados
+        const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.preco) * item.quantidade), 0);
         const total = tipoEntrega === 'entrega' ? subtotal + DELIVERY_FEE : subtotal;
         const totalFormatado = formatPrice(total);
 
-        // Formatar itens para o Google Sheets (um por linha)
         const itemsText = cartItems.map(item => 
           `${item.nome} x${item.quantidade} - ${formatPrice(item.preco)}`
         ).join('\n');
 
-        // Total de itens
         const totalItems = cartItems.reduce((sum, item) => sum + item.quantidade, 0);
 
-        // Montar dados para o Google Sheets
+        // 2. Monta a mensagem do WhatsApp IMEDIATAMENTE
+        let message = `================================%0A`;
+        message += `         *COMPROVANTE DE PEDIDO*%0A`;
+        message += `================================%0A%0A`;
+        
+        message += `*Nome:* ${document.getElementById('nome').value}%0A`;
+        message += `*Tipo de Entrega:* ${tipoEntrega === 'entrega' ? 'ENTREGA' : 'RETIRADA'}%0A%0A`;
+
+        if (tipoEntrega === 'entrega') {
+          message += `*Cidade:* ${document.getElementById('cidade').value}%0A`;
+          message += `*Ponto de Referência:* ${document.getElementById('referencia').value}%0A`;
+          const complemento = document.getElementById('complemento').value;
+          if (complemento) {
+            message += `*Complemento:* ${complemento}%0A`;
+          }
+          message += `*Taxa de entrega:* R$ 3,00%0A%0A`;
+        }
+
+        message += `______________________________________%0A`;
+        message += `*Forma de Pagamento:* ${document.getElementById('pagamento').value}%0A`;
+        if (document.getElementById('pagamento').value === 'Pix') {
+          message += `*Chave Pix:* 98982066609%0A`;
+        }
+        message += `______________________________________%0A%0A`;
+
+        message += `*Itens do Pedido:*%0A`;
+        cartItems.forEach(item => {
+          message += `➤ *${item.nome}*%0A`;
+          message += `   *Quantidade:* ${item.quantidade}%0A`;
+          message += `   *Subtotal:* ${formatPrice(parseFloat(item.preco) * item.quantidade)}%0A%0A`;
+        });
+
+        message += `______________________________________%0A`;
+        message += `*TOTAL DO PEDIDO:* ${totalFormatado}%0A`;
+        message += `______________________________________%0A%0A`;
+        
+        message += `*OBS:* O pedido só será reservado após a confirmação do pagamento via PIX.`;
+
+        // 3. ABRE O WHATSAPP IMEDIATAMENTE (ANTES DE QUALQUER OUTRA AÇÃO)
+        window.open(`https://wa.me/5598982066609?text=${message}`, '_blank');
+
+        // 4. Limpa o carrinho (feedback visual imediato)
+        localStorage.removeItem('cartItems');
+        renderCartItems();
+        renderCartCount();
+        hideModal();
+        showNotification("Pedido registrado com sucesso!");
+
+        // 5. Envia para o AppScript EM SEGUNDO PLANO (sem bloquear a interface)
         const formData = {
           nome: document.getElementById('nome').value,
           whatsapp: whatsapp,
@@ -601,69 +642,19 @@
           pagamento: document.getElementById('pagamento').value
         };
 
-        try {
-          // Enviar para o Google Sheets
+        // Usando setTimeout com delay 0 para não bloquear a interface
+        setTimeout(() => {
           const params = new URLSearchParams(formData);
-          const response = await fetch(`${APPSCRIPT_URL}?${params}`);
-          
-          if (!response.ok) {
-            throw new Error('Erro ao enviar dados para a planilha');
-          }
-
-          // Montar mensagem para WhatsApp (sem o número)
-          let message = `================================%0A`;
-          message += `         *COMPROVANTE DE PEDIDO*%0A`;
-          message += `================================%0A%0A`;
-          
-          message += `*Nome:* ${formData.nome}%0A`;
-          message += `*Tipo de Entrega:* ${formData.tipoEntrega === 'entrega' ? 'ENTREGA' : 'RETIRADA'}%0A%0A`;
-
-          if (formData.tipoEntrega === 'entrega') {
-            message += `*Cidade:* ${document.getElementById('cidade').value}%0A`;
-            message += `*Ponto de Referência:* ${formData.referencia}%0A`;
-            if (formData.complemento) {
-              message += `*Complemento:* ${formData.complemento}%0A`;
-            }
-            message += `*Taxa de entrega:* R$ 3,00%0A%0A`;
-          }
-
-          message += `______________________________________%0A`;
-          message += `*Forma de Pagamento:* ${formData.pagamento}%0A`;
-          if (formData.pagamento === 'Pix') {
-            message += `*Chave Pix:* 98982066609%0A`;
-          }
-          message += `______________________________________%0A%0A`;
-
-          message += `*Itens do Pedido:*%0A`;
-          cartItems.forEach(item => {
-            message += `➤ *${item.nome}*%0A`;
-            message += `   *Quantidade:* ${item.quantidade}%0A`;
-            message += `   *Subtotal:* ${formatPrice(parseFloat(item.preco) * item.quantidade)}%0A%0A`;
-          });
-
-          message += `______________________________________%0A`;
-          message += `*TOTAL DO PEDIDO:* ${totalFormatado}%0A`;
-          message += `______________________________________%0A%0A`;
-          
-          message += `*OBS:* O pedido só será reservado após a confirmação do pagamento via PIX.`;
-
-          // Limpar carrinho
-          localStorage.removeItem('cartItems');
-          renderCartItems();
-          renderCartCount();
-
-          // Abrir WhatsApp (sem enviar o número)
-          window.open(`https://wa.me/5598982066609?text=${message}`, '_blank');
-
-          // Fechar o modal
-          hideModal();
-
-          showNotification("Pedido registrado com sucesso!");
-
-        } catch (error) {
-          console.error('Erro:', error);
-          showNotification("Erro ao registrar pedido. Tente novamente.");
-        }
+          fetch(`${APPSCRIPT_URL}?${params}`)
+            .then(response => {
+              if (!response.ok) {
+                console.error('Erro ao enviar para AppScript');
+              }
+            })
+            .catch(error => {
+              console.error('Erro:', error);
+            });
+        }, 0);
       });
 
       // Inicialização
