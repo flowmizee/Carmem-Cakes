@@ -814,6 +814,8 @@
 
     // Function to reset to the "home" view (categorized products)
     function resetToHomePage() {
+      // This function is no longer called directly by breadcrumb "Início" click
+      // as it will now redirect to index.html
       breadcrumbEl.style.display = 'none'; // Hide breadcrumb
       produtoContainer.style.display = 'none'; // Hide single product view
       produtosWrapper.style.display = 'block'; // Ensure product wrapper is visible
@@ -879,12 +881,18 @@
     // Event Listeners for navigation and search
     document.getElementById('home-link').addEventListener('click', function(e) {
       e.preventDefault();
-      resetToHomePage();
+      window.location.href = 'index.html'; // Redirect to index.html
       overlay.classList.remove('open');
     });
 
-    document.querySelector('.logo img').addEventListener('click', resetToHomePage);
-    pathEl.addEventListener('click', resetToHomePage); // Click on "Início" in breadcrumb
+    document.querySelector('.logo img').addEventListener('click', () => {
+      window.location.href = 'index.html'; // Redirect to index.html
+    });
+
+    // MODIFIED: Redirect to index.html when "Início" in breadcrumb is clicked
+    pathEl.addEventListener('click', () => {
+      window.location.href = 'index.html'; // Redirect to index.html
+    });
 
     document.querySelectorAll('.category').forEach(el => {
       el.addEventListener('click', () => {
