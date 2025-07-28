@@ -437,6 +437,8 @@
       const notification = document.getElementById('notification');
       const tipoEntregaSelect = document.getElementById('tipoEntrega');
 
+      // URL do Google AppScript
+      const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTg9fJLlwPeHcguEPNKs5-goUipOhD1e2-90rhoUXbrHZHtKj9lROUImIHHLTfHNcV/exec";
       const DELIVERY_FEE = 3.00; // Taxa de entrega fixa
 
       // Funções do carrinho
@@ -533,6 +535,42 @@
         setTimeout(() => {
           notification.style.display = 'none';
         }, 5000);
+      }
+
+      // Função para enviar dados para o Google Sheets
+      async function sendToGoogleSheets(formData) {
+        try {
+          // Formata os itens como texto
+          const itemsText = formData.itens.map(item => 
+            `${item.nome} x${item.quantidade} - ${formatPrice(item.preco)}`
+          ).join('\n');
+          
+          // Calcula o total de itens
+          const totalItems = formData.itens.reduce((sum, item) => sum + item.quantidade, 0);
+          
+          // Prepara os dados para o Google Sheets
+          const pedidoData = {
+            produtos: itemsText,
+            quantidade: totalItems,
+            precoTotal: formData.total,
+            nomeCliente: formData.nome,
+            numeroCliente: formData.whatsapp,
+            dataHora: new Date().toLocaleString('pt-BR')
+          };
+
+          // Envia via GET
+          const params = new URLSearchParams(pedidoData);
+          const response = await fetch(`${APPSCRIPT_URL}?${params}`);
+          
+          if (!response.ok) {
+            throw new Error('Erro ao enviar dados');
+          }
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Erro ao enviar para Google Sheets:', error);
+          throw error;
+        }
       }
 
       // Event listeners
@@ -645,6 +683,18 @@
         
         message += `*OBS:* O pedido só será reservado após a confirmação do pagamento via PIX.`;
 
+        // Montar dados para o Google Sheets
+        const formData = {
+          nome: document.getElementById('nome').value,
+          whatsapp: whatsapp,
+          tipoEntrega: tipoEntrega,
+          cidade: tipoEntrega === 'entrega' ? document.getElementById('cidade').value : '',
+          referencia: tipoEntrega === 'entrega' ? document.getElementById('referencia').value : '',
+          complemento: tipoEntrega === 'entrega' ? document.getElementById('complemento').value : '',
+          itens: cartItems,
+          total: formatPrice(total)
+        };
+
         // Limpar carrinho
         localStorage.removeItem('cartItems');
         renderCartItems();
@@ -652,6 +702,13 @@
 
         // Abrir WhatsApp
         window.open(`https://wa.me/5598982066609?text=${message}`, '_blank');
+
+        // Enviar para Google Sheets em segundo plano
+        setTimeout(() => {
+          sendToGoogleSheets(formData)
+            .then(() => console.log("Dados enviados para planilha"))
+            .catch(err => console.error("Erro no envio:", err));
+        }, 0);
 
         // Fechar o modal
         hideModal();
