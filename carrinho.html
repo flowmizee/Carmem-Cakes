@@ -32,7 +32,7 @@
       cursor: pointer; 
       position: relative; 
     }
-    .bag-icon {
+    .bag-icon { 
       width: 56px;
       height: 56px;
       cursor: pointer;
@@ -61,13 +61,6 @@
       width: auto; 
       cursor: pointer; 
     }
-    .back-icon {
-      width: 56px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
     .back-icon img {
       width: 28px;
       height: 28px;
@@ -76,12 +69,13 @@
     .cart-container { 
       padding: 16px; 
       flex: 1; 
-      margin-top: 20px;
+      margin-top: 16px;
     }
     .cart-title { 
       font-size: 24px; 
       font-weight: bold; 
       margin-bottom: 16px; 
+      text-transform: uppercase;
     }
     
     .cart-item { 
@@ -166,12 +160,6 @@
       text-decoration: none; 
       font-size: 14px; 
     }
-    .delivery-fee {
-      display: none;
-      color: #d00;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
     
     .site-footer { 
       background-color: #dfb33a;
@@ -196,7 +184,7 @@
       text-decoration: none;
     }
 
-    /* ESTILOS DO MODAL */
+    /* NOVOS ESTILOS DO MODAL */
     .modal-backdrop {
       position: fixed; 
       inset: 0; 
@@ -212,9 +200,9 @@
       background: #fff; 
       border-top-left-radius: 16px; 
       border-top-right-radius: 16px;
-      max-height: 80vh; 
+      max-height: 90vh; 
       overflow-y: auto; 
-      padding: 24px 16px;
+      padding: 24px;
       transition: bottom .35s ease;
       z-index: 51; 
       width: 100%; 
@@ -242,13 +230,13 @@
     #checkoutForm {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-gap: 12px;
+      grid-gap: 16px;
     }
     #checkoutForm .full { 
       grid-column: 1 / -1; 
     }
     .form-group {
-      margin-bottom: 12px;
+      margin-bottom: 15px;
     }
     .form-group label {
       display: block;
@@ -277,13 +265,60 @@
     }
 
     #pixInfo {
-      display: none;
       background: #f0f0f0;
       padding: 10px;
       border-radius: 8px;
       margin: 10px 0;
       grid-column: 1 / -1;
-      font-size: 14px;
+    }
+
+    /* Campos de texto */
+    #nome {
+      width: 84%;
+    }
+
+    #whatsapp {
+      width: 84%;
+    }
+
+    #cidade {
+      width: 68%;
+    }
+
+    #complemento {
+      width: 84%;
+    }
+
+    /* Campo Ponto de Referência */
+    #referencia {
+      width: 84%;
+    }
+
+    /* Drop-downs */
+    #tipoEntrega {
+      width: 90%;
+    }
+
+    /* Botão "FAZER PEDIDO" */
+    #modal-sheet button.checkout-btn.full {
+      width: 90%;
+    }
+
+    /* Notificação */
+    .notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #dfb33a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      max-width: 90%;
+      text-align: center;
     }
   </style>
 </head>
@@ -313,11 +348,13 @@
       <span>Total:</span>
       <span id="cart-total">R$ 0,00</span>
     </div>
-    <div class="delivery-fee" id="delivery-fee">
-      * Será adicionada taxa de entrega de R$ 3,00
-    </div>
     <button class="checkout-btn" id="open-modal">CONTINUAR PARA O PAGAMENTO</button>
     <a href="index.html" class="continue-shopping">Voltar às compras</a>
+  </div>
+
+  <!-- Notificação -->
+  <div class="notification" id="notification">
+    O pedido só será reservado após a confirmação do pagamento via PIX.
   </div>
 
   <!-- Modal -->
@@ -332,7 +369,7 @@
         <select id="tipoEntrega" required>
           <option value="">Selecione...</option>
           <option value="retirada">Retirada</option>
-          <option value="entrega">Entrega (+ R$ 3,00)</option>
+          <option value="entrega">Entrega</option>
         </select>
       </div>
 
@@ -343,40 +380,38 @@
 
       <div class="form-group full">
         <label class="required">WhatsApp</label>
-        <input type="tel" id="whatsapp" pattern="[0-9]{11}" required placeholder="Ex: 98992124926">
+        <input type="tel" id="whatsapp" pattern="[0-9]{11}" required>
         <div class="error" id="error-whatsapp"></div>
       </div>
 
       <div class="form-group entrega-field" style="display: none;">
         <label class="required">Cidade</label>
-        <input type="text" id="cidade" placeholder="Ex: Santa Inês">
+        <input type="text" id="cidade">
         <div class="error" id="error-cidade"></div>
       </div>
       
       <div class="form-group entrega-field full" style="display: none;">
         <label class="required">Ponto de Referência</label>
-        <input type="text" id="referencia" placeholder="Ex: Praça da Matriz, próximo ao mercado">
+        <input type="text" id="referencia">
         <div class="error" id="error-referencia"></div>
       </div>
 
       <div class="form-group entrega-field full" style="display: none;">
         <label>Complemento (Opcional)</label>
-        <input type="text" id="complemento" placeholder="Ex: Casa azul, número 123">
+        <input type="text" id="complemento">
       </div>
 
       <div class="form-group full">
         <label class="required">Forma de Pagamento</label>
         <select id="pagamento" required>
           <option value="">Selecione...</option>
-          <option value="Dinheiro">Dinheiro</option>
           <option value="Pix">Pix</option>
-          <option value="Cartão de Crédito">Cartão de Crédito</option>
-          <option value="Cartão de Débito">Cartão de Débito</option>
         </select>
       </div>
 
       <div id="pixInfo">
-        <p><strong>Chave Pix:</strong> 98992124926</p>
+        <p>Chave Pix: 98992124926</p>
+        <p>O pedido só será reservado após a confirmação do pagamento.</p>
       </div>
 
       <button type="submit" class="checkout-btn full">FAZER PEDIDO</button>
@@ -414,54 +449,38 @@
       const closeModalBtn = document.getElementById('close-modal');
       const backdrop = document.getElementById('backdrop');
       const modal = document.getElementById('modal-sheet');
-      const deliveryFeeEl = document.getElementById('delivery-fee');
       const errorWhatsapp = document.getElementById('error-whatsapp');
       const errorReferencia = document.getElementById('error-referencia');
       const errorCidade = document.getElementById('error-cidade');
+      const notification = document.getElementById('notification');
 
       // URL do Google AppScript - SUBSTITUA PELA SUA URL
       const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTg9fJLlwPeHcguEPNKs5-goUipOhD1e2-90rhoUXbrHZHtKj9lROUImIHHLTfHNcV/exec";
 
-      // Funções do carrinho
+      // Funções existentes do carrinho
       function renderCartCount() {
-        const totalQty = cartItems.reduce((sum, item) => sum + (item.quantidade || 0), 0);
+        const totalQty = cartItems.reduce((sum, item) => sum + item.quantidade, 0);
         cartCountEl.textContent = totalQty;
         cartCountEl.style.display = totalQty > 0 ? 'inline-block' : 'none';
       }
 
       function formatPrice(price) {
-        if (typeof price === 'string') {
-          price = parseFloat(price.replace('R$ ', '').replace(',', '.'));
-        }
-        return 'R$ ' + price.toFixed(2).replace('.', ',');
-      }
-
-      function calculateTotal() {
-        let total = cartItems.reduce((sum, item) => {
-          return sum + (parseFloat(item.preco.replace('R$ ', '').replace(',', '.')) * item.quantidade;
-        }, 0);
-        
-        // Verifica se há taxa de entrega
-        const tipoEntrega = document.getElementById('tipoEntrega')?.value;
-        if (tipoEntrega === 'entrega') {
-          total += 3; // Adiciona taxa de entrega
-        }
-        
-        return total;
+        return 'R$ ' + parseFloat(price).toFixed(2).replace('.', ',');
       }
 
       function renderCartItems() {
         if (cartItems.length === 0) {
           cartItemsEl.innerHTML = '<p>Seu carrinho está vazio</p>';
           cartTotalEl.textContent = 'R$ 0,00';
-          deliveryFeeEl.style.display = 'none';
           return;
         }
 
+        let total = 0;
         cartItemsEl.innerHTML = '';
-        
+
         cartItems.forEach((item, index) => {
-          const subtotal = parseFloat(item.preco.replace('R$ ', '').replace(',', '.')) * item.quantidade;
+          const subtotal = parseFloat(item.preco) * item.quantidade;
+          total += subtotal;
 
           const itemEl = document.createElement('div');
           itemEl.className = 'cart-item';
@@ -469,7 +488,7 @@
             <img src="${item.imagem || 'https://placehold.co/100x100/f2f2f2/333?text=Sem+Imagem'}" alt="${item.nome}" class="cart-item-image">
             <div class="cart-item-details">
               <div class="cart-item-name">${item.nome}</div>
-              <div class="cart-item-price">${item.preco}</div>
+              <div class="cart-item-price">${formatPrice(item.preco)}</div>
               <div class="cart-item-qty">Quantidade: ${item.quantidade}</div>
               <div class="cart-item-subtotal">Subtotal: ${formatPrice(subtotal)}</div>
             </div>
@@ -492,7 +511,7 @@
           });
         });
 
-        cartTotalEl.textContent = formatPrice(calculateTotal());
+        cartTotalEl.textContent = formatPrice(total);
       }
 
       function showModal() {
@@ -502,13 +521,18 @@
         }
         modal.classList.add('open');
         backdrop.style.display = 'block';
-        document.body.style.overflow = 'hidden';
       }
 
       function hideModal() {
         modal.classList.remove('open');
         backdrop.style.display = 'none';
-        document.body.style.overflow = '';
+      }
+
+      function showNotification() {
+        notification.style.display = 'block';
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 5000);
       }
 
       // Função para enviar dados para o Google Sheets
@@ -516,7 +540,7 @@
         try {
           // Formata os itens no padrão "Nome xQuantidade - R$Preço"
           const itemsText = formData.itens.map(item => 
-            `${item.nome} x${item.quantidade} - ${item.preco}`
+            `${item.nome} x${item.quantidade} - ${formatPrice(item.preco)}`
           ).join('\n');
           
           // Calcula o total de itens
@@ -536,7 +560,7 @@
             cidade: formData.cidade || ''
           };
 
-          // Envia via GET
+          // Envia via GET (mais confiável para AppScript)
           const params = new URLSearchParams(pedidoData);
           const response = await fetch(`${APPSCRIPT_URL}?${params}`);
           
@@ -556,22 +580,12 @@
       closeModalBtn.addEventListener('click', hideModal);
       backdrop.addEventListener('click', hideModal);
 
-      // Mostrar campos de entrega e taxa
+      // Mostrar campos de entrega
       document.getElementById('tipoEntrega').addEventListener('change', function() {
         const entregaFields = document.querySelectorAll('.entrega-field');
         entregaFields.forEach(field => {
           field.style.display = this.value === 'entrega' ? 'block' : 'none';
         });
-        
-        // Atualiza o total com a taxa de entrega
-        cartTotalEl.textContent = formatPrice(calculateTotal());
-        deliveryFeeEl.style.display = this.value === 'entrega' ? 'block' : 'none';
-      });
-
-      // Mostrar info do Pix
-      document.getElementById('pagamento').addEventListener('change', function() {
-        document.getElementById('pixInfo').style.display = 
-          this.value === 'Pix' ? 'block' : 'none';
       });
 
       // Validar WhatsApp
@@ -588,7 +602,7 @@
         errorReferencia.textContent = '';
         errorCidade.textContent = '';
 
-        // Validações
+        // Validações rápidas
         if (cartItems.length === 0) {
           alert('Seu carrinho está vazio!');
           return;
@@ -631,17 +645,20 @@
           referencia: document.getElementById('referencia').value || '',
           pagamento: document.getElementById('pagamento').value,
           itens: cartItems,
-          total: cartTotalEl.textContent
+          total: document.getElementById('cart-total').textContent
         };
 
-        // 1. Montar mensagem para WhatsApp
+        // 1. Mostrar notificação
+        showNotification();
+
+        // 2. Montar mensagem para WhatsApp
         let message = `================================%0A`;
         message += `         *PEDIDO - DIVAS*%0A`;
         message += `================================%0A%0A`;
         
         message += `*Nome:* ${formData.nome}%0A`;
         message += `*WhatsApp:* ${formData.whatsapp}%0A`;
-        message += `*Tipo de Entrega:* ${formData.tipoEntrega === 'entrega' ? 'ENTREGA (+ R$ 3,00)' : 'RETIRADA'}%0A%0A`;
+        message += `*Tipo de Entrega:* ${formData.tipoEntrega === 'entrega' ? 'ENTREGA' : 'RETIRADA'}%0A%0A`;
 
         if (formData.tipoEntrega === 'entrega') {
           message += `*Cidade:* ${formData.cidade}%0A`;
@@ -653,34 +670,31 @@
         }
 
         message += `*Forma de Pagamento:* ${formData.pagamento}%0A`;
-        if (formData.pagamento === 'Pix') {
-          message += `*Chave Pix:* 98992124926%0A`;
-        }
-        message += `______________________________________%0A%0A`;
+        message += `*Chave Pix:* 98992124926%0A%0A`;
 
         message += `*Itens do Pedido:*%0A`;
         formData.itens.forEach(item => {
           message += `➤ *${item.nome}*%0A`;
-          message += `   Quantidade: ${item.quantidade}%0A`;
-          message += `   Preço: ${item.preco}%0A%0A`;
+          message += `   *Quantidade:* ${item.quantidade}%0A`;
+          message += `   *Preço Unitário:* ${formatPrice(item.preco)}%0A`;
+          message += `   *Subtotal:* ${formatPrice(parseFloat(item.preco) * item.quantidade)}%0A%0A`;
         });
 
-        message += `______________________________________%0A`;
+        message += `================================%0A`;
         message += `*TOTAL DO PEDIDO:* ${formData.total}%0A`;
-        message += `______________________________________%0A%0A`;
+        message += `================================%0A%0A`;
+        
+        message += `*OBS:* O pedido só será reservado após a confirmação do pagamento via PIX.`;
 
-        message += `*Obrigado pelo seu pedido!*%0A`;
-        message += `Em breve entraremos em contato para confirmar.`;
-
-        // 2. Limpar carrinho
+        // 3. Limpar carrinho
         localStorage.removeItem('cartItems');
         renderCartItems();
         renderCartCount();
 
-        // 3. Abrir WhatsApp
+        // 4. Abrir WhatsApp
         window.open(`https://wa.me/5598992124926?text=${message}`, '_blank');
 
-        // 4. Enviar para Google Sheets em segundo plano
+        // 5. Enviar para Google Sheets em segundo plano
         if (APPSCRIPT_URL && APPSCRIPT_URL !== "SUA_URL_DO_APPSCRIPT_AQUI") {
           setTimeout(() => {
             sendToGoogleSheets(formData)
@@ -689,11 +703,10 @@
           }, 0);
         }
 
-        // 5. Fechar o modal
+        // 6. Fechar o modal
         hideModal();
       });
 
-      // Inicialização
       renderCartItems();
       renderCartCount();
     });
