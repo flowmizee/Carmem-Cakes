@@ -40,8 +40,8 @@
       position: relative;
     }
     .bag-icon { 
-      width: 28px;
-      height: 28px;
+      width: 46px;
+      height: 46px;
       cursor: pointer; 
       position: relative;
       display: flex;
@@ -54,7 +54,7 @@
     }
     .bag-icon .cart-count {
       position: absolute;
-      top: -6px;
+      top: -4px;
       right: -8px;
       background: #ff0000;
       color: #fff;
@@ -64,7 +64,7 @@
       display: none;
     }
     .logo img { 
-      max-height: 100px; 
+      max-height: 80px; 
       width: auto; 
       cursor: pointer; 
     }
@@ -100,18 +100,21 @@
     /* CATEGORIAS TEXTO - COM ANIMAÇÃO DE SCROLL */
     .categories-container {
       display: flex; 
-      gap: 20px; 
+      gap: 16px; 
       overflow-x: auto;
       scroll-behavior: smooth; 
-      padding: 12px 16px 16px;
+      padding: 8px 16px 16px;
       -webkit-overflow-scrolling: touch;
     }
-    .categories-container.hidden::-webkit-scrollbar-thumb {
-      background-color: rgba(204,204,204,0);
-      transition: background-color 0.5s ease;
+    .categories-container.hidden {
+      scrollbar-color: transparent transparent;
     }
     .categories-container::-webkit-scrollbar {
       height: 6px;
+      transition: all 0.3s ease;
+    }
+    .categories-container.hidden::-webkit-scrollbar-thumb {
+      background-color: transparent;
     }
     .categories-container::-webkit-scrollbar-track {
       background: #f1f1f1;
@@ -120,16 +123,16 @@
     .categories-container::-webkit-scrollbar-thumb {
       background: #dfb33a;
       border-radius: 3px;
-      transition: background-color 0.5s ease;
+      transition: all 0.3s ease;
     }
     .category { 
       cursor: pointer; 
       white-space: nowrap; 
       padding: 12px 0;
       font-size: 18px;
+      font-weight: 500;
       text-transform: uppercase;
       color: #333;
-      font-weight: 500;
       transition: all 0.2s;
     }
     .category:hover {
@@ -200,10 +203,12 @@
       align-items: center; 
       justify-content: center; 
       overflow: hidden; 
+      border-radius: 8px;
     }
     .photo-img img { 
       max-width: 100%; 
       max-height: 100%; 
+      object-fit: cover;
     }
     .photo-item .label { 
       font-size: 16px; 
@@ -235,26 +240,27 @@
     .banner-scroll { 
       display: flex;
       gap: 16px;
-      padding: 0;
+      padding: 0 16px;
       width: max-content;
     }
     .banner-scroll.single-banner {
       width: 100%;
       padding: 0;
+      justify-content: center;
     }
     .banner-scroll.scrolling {
       animation: scrollBanners 15s linear infinite;
-      padding: 0 16px;
     }
     .banner-scroll img { 
       height: 500px; 
-      width: calc(100vw - 100px);
+      width: calc(100vw - 32px);
       object-fit: cover; 
       border-radius: 12px;
       flex-shrink: 0;
     }
     .banner-scroll.single-banner img {
       width: 100%;
+      max-width: 1200px;
       border-radius: 0;
     }
     @keyframes scrollBanners { 
@@ -279,6 +285,7 @@
       font-weight: bold; 
       margin: 24px 0 16px;
       text-transform: uppercase;
+      cursor: pointer;
     }
     .produtos-grid { 
       display: grid; 
@@ -372,7 +379,11 @@
       }
       .categories-container {
         gap: 16px;
-        padding: 10px 16px 14px;
+        padding: 8px 16px 16px;
+      }
+      .photo-img {
+        width: 90px;
+        height: 90px;
       }
     }
 
@@ -497,7 +508,6 @@
     const catsEl = document.getElementById('cats');
 
     // Configuração da barra de rolagem com efeito fade
-    catsEl.classList.add('hidden');
     let scrollTimeout;
     
     catsEl.addEventListener('scroll', () => {
@@ -507,6 +517,11 @@
         catsEl.classList.add('hidden');
       }, 1000);
     });
+
+    // Inicialmente mostra a barra e depois de 3 segundos esconde
+    setTimeout(() => {
+      catsEl.classList.add('hidden');
+    }, 3000);
 
     function getCartItems() {
       try {
