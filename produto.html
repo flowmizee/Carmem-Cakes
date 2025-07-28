@@ -156,7 +156,7 @@
             padding: 8px 16px;
             display: none; /* Hidden by default, shown when needed */
         }
-        #breadcrumb .path {
+        #breadcrumb .path, #breadcrumb .crumbName.clickable {
             font-size: 14px;
             color: #007bff;
             cursor: pointer;
@@ -170,6 +170,9 @@
         #breadcrumb .crumbName {
             font-size: 14px;
             text-transform: capitalize;
+            color: #555; /* Default for non-clickable final crumb */
+            text-decoration: none;
+            cursor: default;
         }
         .header-row {
             display: flex;
@@ -198,15 +201,6 @@
             flex: 1;
             min-height: 300px;
             display: none; /* Hidden by default, shown when a list of products is viewed */
-        }
-        .breadcrumb-list {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 16px;
-        }
-        .breadcrumb-list a {
-            color: #007bff;
-            text-decoration: none;
         }
         .carousel {
             position: relative;
@@ -448,9 +442,11 @@
     <div class="main-content">
         <!-- Breadcrumb for product lists and search results -->
         <div id="breadcrumb">
-            <span class="path">Início</span>
+            <span id="breadcrumb-home" class="path">Início</span>
             <span class="separator">&gt;</span>
-            <span class="crumbName"></span>
+            <span id="breadcrumb-intermediate" class="crumbName clickable" style="display:none;"></span>
+            <span id="separator-intermediate" class="separator" style="display:none;">&gt;</span>
+            <span id="breadcrumb-final" class="crumbName"></span>
             <div class="header-row">
                 <span class="title"></span>
                 <span class="count"></span>
@@ -487,7 +483,7 @@
 
     <script>
         // ––––––––––––––––––––––––––––––––––
-        // Gerenciamento de carrinho no localStorage
+        // Cart management in localStorage
         const CART_KEY = 'cartItems';
 
         function getCartItems() {
@@ -516,10 +512,8 @@
         });
         // ––––––––––––––––––––––––––––––––––
 
-        // Configuração da barra de rolagem com efeito fade
+        // Scrollbar configuration with fade effect
         let scrollTimeout;
-        let isFirstInteraction = true;
-
         const catsEl = document.getElementById('cats');
         if (catsEl) {
             catsEl.addEventListener('scroll', () => {
@@ -546,17 +540,15 @@
         document.querySelector('.menu-icon').onclick = () => overlay.classList.add('open');
         overlay.querySelector('.close-btn').onclick = () => overlay.classList.remove('open');
 
-        // Capturar produto específico se vier pela URL
+        // Capture specific product if coming from URL
         const params = new URLSearchParams(window.location.search);
         const initialProductName = decodeURIComponent(params.get('produto') || '');
-        const initialProductImage = params.get('imagem') ? decodeURIComponent(params.get('imagem')) : '';
-        const initialProductDescription = params.get('descricao') ? decodeURIComponent(params.get('descricao')) : '';
-        const initialProductPrice = params.get('preco') ? decodeURIComponent(params.get('preco')) : '';
-        const initialProductMessage = params.get('mensagem') ? decodeURIComponent(params.get('mensagem')) : '';
+        // Note: initialProductImage, Description, Price, Message are not directly used here for initial display
+        // as the product data is fetched from the CSV. They are kept for reference if needed.
 
         let allProdutos = [];
         let categorizedProducts = {};
-        let currentProductData = null; // Armazena os dados do produto se um único produto estiver sendo exibido
+        let currentProductData = null; // Stores data of the product if a single product is displayed
 
         const categoryMap = {
             'MORANGO DO AMOR': ['morango', 'morango do amor', 'morangos'],
@@ -609,56 +601,112 @@
             }
         }
 
-        // Elementos para o breadcrumb
+        // Elements for breadcrumb
         const breadcrumbEl = document.getElementById('breadcrumb');
-        const pathEl = breadcrumbEl.querySelector('.path');
-        const crumbNameEl = breadcrumbEl.querySelector('.crumbName');
+        const breadcrumbHomeEl = document.getElementById('breadcrumb-home');
+        const breadcrumbIntermediateEl = document.getElementById('breadcrumb-intermediate');
+        const separatorIntermediateEl = document.getElementById('separator-intermediate');
+        const breadcrumbFinalEl = document.getElementById('breadcrumb-final');
         const headerTitleEl = breadcrumbEl.querySelector('.header-row .title');
         const headerCountEl = breadcrumbEl.querySelector('.header-row .count');
         const produtoSingleView = document.getElementById('produto-single-view');
         const produtosWrapper = document.getElementById('produtos-wrapper');
 
+        // Add initial click listener for the "Início" part of the breadcrumb
+        breadcrumbHomeEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            location.href = 'index.html'; // Always go to index.html
+        });
+
+        // Add click listener for the "Produtos" intermediate crumb
+        breadcrumbIntermediateEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            renderMainContent('productList', allProdutos, 'Todos os Produtos', true); // Go to all products list
+        });
+
         /**
-         * Renderiza a área de conteúdo principal, alternando entre a visualização de produto único e a lista de produtos.
-         * @param {string} viewType - 'singleProduct', 'productList', 'searchResult'.
-         * @param {Object|Array} data - Objeto do produto para 'singleProduct', array de produtos para listas.
-         * @param {string} displayTitle - Título para o breadcrumb/cabeçalho.
+         * Updates the breadcrumb based on the current view.
+         * @param {string} type - 'category', 'search', 'allProducts', 'singleProduct'.
+         * @param {string} name - The name to display (e.g., category name, product name, search term).
+         * @param {number} count - The number of products (for lists).
          */
-        function renderMainContent(viewType, data, displayTitle = '') {
-            // Esconde ambos inicialmente
+        function updateBreadcrumb(type, name = '', count = 0) {
+            breadcrumbEl.style.display = 'block';
+
+            // Reset intermediate elements
+            breadcrumbIntermediateEl.style.display = 'none';
+            separatorIntermediateEl.style.display = 'none';
+            breadcrumbIntermediateEl.classList.remove('clickable'); // Ensure it's not clickable by default
+
+            // Set styling for home link
+            breadcrumbHomeEl.classList.add('clickable'); // Ensure it's clickable
+
+            if (type === 'singleProduct') {
+                breadcrumbFinalEl.textContent = name;
+                breadcrumbFinalEl.classList.remove('clickable'); // Not clickable
+                headerTitleEl.textContent = '';
+                headerCountEl.textContent = '';
+            } else if (type === 'allProducts') {
+                breadcrumbIntermediateEl.style.display = 'inline';
+                separatorIntermediateEl.style.display = 'inline';
+                breadcrumbIntermediateEl.textContent = 'Produtos';
+                breadcrumbIntermediateEl.classList.add('clickable'); // Make clickable
+
+                breadcrumbFinalEl.textContent = 'Todos os Produtos';
+                breadcrumbFinalEl.classList.remove('clickable'); // Not clickable
+
+                headerTitleEl.textContent = 'TODOS OS PRODUTOS';
+                headerCountEl.textContent = `${count} produto${count !== 1 ? 's' : ''}`;
+            } else if (type === 'category' || type === 'search') {
+                breadcrumbFinalEl.textContent = name;
+                breadcrumbFinalEl.classList.remove('clickable'); // Not clickable
+                headerTitleEl.textContent = name.toUpperCase();
+                headerCountEl.textContent = `${count} produto${count !== 1 ? 's' : ''}`;
+            }
+        }
+
+        /**
+         * Renders the main content area, switching between single product view and product list.
+         * @param {string} viewType - 'singleProduct', 'productList', 'searchResult'.
+         * @param {Object|Array} data - Product object for 'singleProduct', array of products for lists.
+         * @param {string} displayTitle - Title for the breadcrumb/header.
+         * @param {boolean} isAllProductsView - True if rendering the 'All Products' list.
+         */
+        function renderMainContent(viewType, data, displayTitle = '', isAllProductsView = false) {
+            // Hide both initially
             produtoSingleView.style.display = 'none';
             produtosWrapper.style.display = 'none';
-            breadcrumbEl.style.display = 'none'; // Esconde o breadcrumb por padrão e mostra quando necessário
+            breadcrumbEl.style.display = 'none'; // Hide breadcrumb by default and show when needed
 
             if (viewType === 'singleProduct') {
                 produtoSingleView.style.display = 'block';
                 showSingleProduct(data);
-                // Breadcrumb para produto único: Início > Nome do Produto
-                breadcrumbEl.style.display = 'block'; // Mostra o breadcrumb para produto único
-                pathEl.textContent = 'Início';
-                pathEl.style.textDecoration = 'underline'; // Garante sublinhado para o caminho clicável
-                pathEl.style.cursor = 'pointer';
-                crumbNameEl.textContent = data.nome;
-                headerTitleEl.textContent = ''; // Sem título/contagem específica para produto único no header-row
-                headerCountEl.textContent = '';
-            } else if (viewType === 'productList' || viewType === 'searchResult') {
+                updateBreadcrumb('singleProduct', data.nome);
+            } else if (viewType === 'productList') {
                 produtosWrapper.style.display = 'block';
                 renderProductGrid(data);
-                showBreadcrumb(displayTitle, data.length); // Atualiza o breadcrumb para listas
+                if (isAllProductsView) {
+                    updateBreadcrumb('allProducts', '', data.length);
+                } else {
+                    updateBreadcrumb('category', displayTitle, data.length);
+                }
+            } else if (viewType === 'searchResult') {
+                produtosWrapper.style.display = 'block';
+                renderProductGrid(data);
+                updateBreadcrumb('search', displayTitle, data.length);
             }
         }
 
-        // Renderiza os detalhes de um único produto
+        // Renders details of a single product
         function showSingleProduct(product) {
-            currentProductData = product; // Armazena os dados do produto único atual
+            currentProductData = product; // Stores the current single product data
             const desc = product.descricao || '';
-            // Garante que o preço seja formatado corretamente, lidando com casos em que pode estar vazio ou não ser um número
+            // Ensures price is correctly formatted, handling cases where it might be empty or not a number
             const preco = (product.preco || '0,00').replace(/[^\d.,]/g, '').replace('.', ',');
 
             const extra = product.mensagem || '';
 
-            let html = `<div class="breadcrumb-list"><a href="#" id="single-product-breadcrumb-home">Início</a> &gt; ${product.nome}</div>`;
-            html += `
+            let html = `
                 <div class="carousel">
                     <img src="${product.imagem || 'https://placehold.co/350x350/f2f2f2/333?text=Sem+Imagem'}" alt="${product.nome}">
                 </div>
@@ -685,13 +733,7 @@
 
             produtoSingleView.innerHTML = html;
 
-            // Adiciona listener de evento para o link "Início" do breadcrumb
-            document.getElementById('single-product-breadcrumb-home').addEventListener('click', function(e) {
-                e.preventDefault();
-                resetToHomePage();
-            });
-
-            // Configura os controles de quantidade
+            // Configure quantity controls
             let qty = 1;
             document.getElementById('decrease').onclick = () => {
                 if (qty > 1) qty--;
@@ -703,7 +745,7 @@
                 document.getElementById('quantity').textContent = qty;
             };
 
-            // Configura o botão de compra
+            // Configure buy button
             document.querySelector('.buy-btn').onclick = () => {
                 const nome = product.nome;
                 const precoText = document.querySelector('.produto-preco').textContent.replace('R$ ', '');
@@ -736,7 +778,7 @@
             };
         }
 
-        // Renderiza uma grade de produtos
+        // Renders a product grid
         function renderProductGrid(list) {
             produtosWrapper.innerHTML = '';
 
@@ -754,7 +796,7 @@
                 const div = document.createElement('div');
                 div.className = 'produto';
                 div.addEventListener('click', () => {
-                    // Ao clicar em um produto na grade, navega para sua página de produto único
+                    // When clicking a product in the grid, navigate to its single product page
                     const params = new URLSearchParams();
                     params.set('produto', p.nome);
                     params.set('imagem', encodeURIComponent(p.imagem));
@@ -775,89 +817,67 @@
             produtosWrapper.appendChild(grid);
         }
 
-        // Atualiza o breadcrumb para listas de produtos/resultados de busca
-        function showBreadcrumb(name, count) {
-            breadcrumbEl.style.display = 'block';
-            pathEl.textContent = 'Início';
-            pathEl.style.textDecoration = 'underline'; // Garante sublinhado para o caminho clicável
-            pathEl.style.cursor = 'pointer';
-            crumbNameEl.textContent = name;
-            headerTitleEl.textContent = name.toUpperCase();
-            headerCountEl.textContent = `${count} produto${count !== 1 ? 's' : ''}`;
-        }
-
-        // Reinicia a página para seu estado inicial (produto único se carregado, ou todos os produtos)
+        // Resets the page to its initial state (all products view)
         function resetToHomePage() {
-            if (initialProductName && currentProductData) {
-                renderMainContent('singleProduct', currentProductData);
-            } else {
-                renderMainContent('productList', allProdutos, 'Todos os Produtos');
-            }
+            renderMainContent('productList', allProdutos, 'Todos os Produtos', true);
         }
 
-        // Listeners de eventos para categorias
+        // Event listeners for categories
         document.querySelectorAll('.category').forEach(el => {
             el.addEventListener('click', () => {
                 const name = el.textContent.trim();
                 const filtered = filterByCategory(name);
-                overlay.classList.remove('open'); // Fecha o menu ao clicar na categoria
-                renderMainContent('productList', filtered, name);
+                overlay.classList.remove('open'); // Close menu when clicking category
+                renderMainContent('productList', filtered, name, false);
             });
         });
 
-        // Lógica de input e botão de busca
+        // Search input and button logic
         const searchInput = document.querySelector('.search-input');
         const searchButton = document.querySelector('.search-button');
 
         searchInput.addEventListener('input', () => {
             const term = searchInput.value.trim();
             if (!term) {
-                resetToHomePage(); // Se a busca for limpa, volta ao estado inicial
+                resetToHomePage(); // If search is cleared, go back to all products
                 return;
             }
-
             const normalizedTerm = normalizeText(term);
             const filtered = allProdutos.filter(p => {
                 const nome = normalizeText(p.nome || '');
                 return nome.includes(normalizedTerm);
             });
-
-            renderMainContent('searchResult', filtered, `Resultados para "${term}"`);
+            renderMainContent('searchResult', filtered, `Resultados para "${term}"`, false);
         });
 
         searchButton.addEventListener('click', () => {
             const term = searchInput.value.trim();
             if (!term) {
-                resetToHomePage(); // Se o botão de busca for clicado com o termo vazio, volta ao estado inicial
+                resetToHomePage(); // If search button clicked with empty term, go back to all products
                 return;
             }
-
             const normalizedTerm = normalizeText(term);
             const filtered = allProdutos.filter(p => {
                 const nome = normalizeText(p.nome || '');
                 return nome.includes(normalizedTerm);
             });
-
-            renderMainContent('searchResult', filtered, `Resultados para "${term}"`);
+            renderMainContent('searchResult', filtered, `Resultados para "${term}"`, false);
         });
 
-        // Link "Início" no breadcrumb
-        pathEl.addEventListener('click', resetToHomePage);
-
-        // Clique no logo para resetar para a página inicial
+        // Click on logo to reset to home page
         document.querySelector('.logo img').addEventListener('click', function(e) {
             e.preventDefault();
             resetToHomePage();
         });
 
-        // Link "Produtos" no menu hambúrguer
+        // "Produtos" link in hamburger menu
         document.getElementById('all-products-link').addEventListener('click', function(e) {
             e.preventDefault();
             overlay.classList.remove('open');
-            renderMainContent('productList', allProdutos, 'Todos os Produtos');
+            renderMainContent('productList', allProdutos, 'Todos os Produtos', true);
         });
 
-        // Carrega os dados e define a visualização inicial
+        // Load data and set initial view
         fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRpRIMaL2mtK3AyrckDd8DI9cZIWZX17I8bB-oUidxXWa60sD7S1HvHE-9cpPUTFJVSpPY7d7CSIzpc/pub?output=csv')
             .then(r => r.text())
             .then(csv => {
@@ -865,7 +885,7 @@
 
                 lines.forEach(line => {
                     const c = line.split(',');
-                    // Garante que o nome e a imagem do produto existam e que o estoque não seja 0
+                    // Ensure product name and image exist and stock is not 0
                     const productName = c[2]?.trim();
                     const productImage = c[3]?.trim();
                     const estoque = c[7]?.trim();
@@ -875,32 +895,31 @@
                     const product = {
                         nome: productName,
                         imagem: productImage,
-                        descricao: c[4]?.trim() || '', // Índice corrigido para descrição
-                        preco: c[5]?.trim() || '',     // Índice corrigido para preço
-                        mensagem: c[6]?.trim() || ''    // Índice corrigido para mensagem
+                        descricao: c[4]?.trim() || '',
+                        preco: c[5]?.trim() || '',
+                        mensagem: c[6]?.trim() || ''
                     };
                     allProdutos.push(product);
                 });
 
-                categorizeProducts(); // Categoriza após todos os produtos serem carregados
+                categorizeProducts(); // Categorize after all products are loaded
 
-                // Determina a visualização inicial após o carregamento dos dados
+                // Determines initial view after data loads
                 if (initialProductName) {
                     const productToDisplay = allProdutos.find(p => p.nome === initialProductName);
                     if (productToDisplay) {
                         renderMainContent('singleProduct', productToDisplay);
                     } else {
-                        // Se o produto não for encontrado, o padrão é a visualização de todos os produtos
-                        renderMainContent('productList', allProdutos, 'Todos os Produtos');
+                        renderMainContent('productList', allProdutos, 'Todos os Produtos', true);
                     }
                 } else {
-                    renderMainContent('productList', allProdutos, 'Todos os Produtos');
+                    renderMainContent('productList', allProdutos, 'Todos os Produtos', true);
                 }
             })
             .catch(error => {
                 console.error('Erro ao carregar produtos:', error);
                 produtosWrapper.innerHTML = '<div class="no-products">Erro ao carregar produtos. Por favor, tente novamente mais tarde.</div>';
-                produtosWrapper.style.display = 'block'; // Garante que o wrapper esteja visível para mostrar o erro
+                produtosWrapper.style.display = 'block'; // Ensure wrapper is visible to show error
             });
     </script>
 </body>
