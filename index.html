@@ -40,8 +40,8 @@
       position: relative;
     }
     .bag-icon { 
-      width: 46px;
-      height: 46px;
+      width: 56px; /* Aumentado de 46px para 56px */
+      height: 56px; /* Aumentado de 46px para 56px */
       cursor: pointer; 
       position: relative;
       display: flex;
@@ -107,7 +107,10 @@
       -webkit-overflow-scrolling: touch;
     }
     .categories-container.hidden {
-      scrollbar-color: transparent transparent;
+      scrollbar-width: none;
+    }
+    .categories-container.hidden::-webkit-scrollbar {
+      display: none;
     }
     .categories-container::-webkit-scrollbar {
       height: 6px;
@@ -507,21 +510,34 @@
     const cartCountEl = document.getElementById('cart-count');
     const catsEl = document.getElementById('cats');
 
-    // Configuração da barra de rolagem com efeito fade
+    // Configuração da barra de rolagem - só esconde após interação do usuário
+    let userHasInteracted = false;
     let scrollTimeout;
     
     catsEl.addEventListener('scroll', () => {
+      userHasInteracted = true;
       catsEl.classList.remove('hidden');
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        catsEl.classList.add('hidden');
+        if (userHasInteracted) {
+          catsEl.classList.add('hidden');
+        }
       }, 1000);
     });
 
-    // Inicialmente mostra a barra e depois de 3 segundos esconde
-    setTimeout(() => {
-      catsEl.classList.add('hidden');
-    }, 3000);
+    // Não esconde automaticamente no início - só depois que o usuário interagir
+    catsEl.addEventListener('pointerenter', () => {
+      userHasInteracted = true;
+      catsEl.classList.remove('hidden');
+    });
+
+    catsEl.addEventListener('pointerleave', () => {
+      if (userHasInteracted) {
+        setTimeout(() => {
+          catsEl.classList.add('hidden');
+        }, 1000);
+      }
+    });
 
     function getCartItems() {
       try {
