@@ -13,22 +13,20 @@
     }
     
     body {
-      background-color: #e5ddd5;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+      background-color: #f5f5f5;
+      min-height: 100vh;
     }
     
     .header {
-      background-color: #008069;
+      background-color: #dfb33a;
       color: white;
-      padding: 60px 16px 12px 16px;
+      padding: 15px;
       display: flex;
       align-items: center;
-      position: fixed;
+      position: sticky;
       top: 0;
-      width: 100%;
       z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     
     .profile-pic {
@@ -39,108 +37,131 @@
       object-fit: cover;
     }
     
-    .header-info {
-      flex: 1;
-    }
-    
     .header-title {
       font-size: 18px;
-      font-weight: 500;
+      font-weight: bold;
+      flex-grow: 1;
     }
     
-    .messages-container {
-      flex: 1;
-      padding: 80px 0 20px 0;
-      overflow-y: auto;
-      background-image: url('https://web.whatsapp.com/img/bg-chat-tile-light_a4be512e7195b6b733d9110b408f075d.png');
-      background-repeat: repeat;
+    .date-filter {
+      padding: 10px 15px;
+      background-color: #fff;
+      position: sticky;
+      top: 70px;
+      z-index: 90;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .date-filter select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    
+    .orders-container {
+      padding: 15px;
     }
     
     .date-separator {
-      text-align: center;
-      margin: 16px 0;
-      position: relative;
-    }
-    
-    .date-separator span {
-      background-color: #e5ddd5;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      color: #333;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .date-separator::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background-color: #ccc;
-      z-index: 0;
-    }
-    
-    .message {
-      margin: 6px 16px;
-      display: flex;
-      justify-content: flex-start;
-    }
-    
-    .message-content {
-      background-color: white;
-      border-radius: 8px;
-      padding: 8px 12px;
-      max-width: 80%;
-      box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
-    }
-    
-    .message-text {
+      color: #666;
       font-size: 14px;
-      line-height: 1.4;
-      white-space: pre-line;
-      font-family: monospace;
+      margin: 20px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
     }
     
-    .print-btn {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 4px 8px;
-      background-color: #008069;
-      color: white;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
+    .order-card {
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .order-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #dfb33a;
+    }
+    
+    .order-field {
+      margin-bottom: 8px;
+      display: flex;
+    }
+    
+    .field-label {
+      font-weight: bold;
+      min-width: 120px;
+      color: #555;
+    }
+    
+    .field-value {
+      flex-grow: 1;
+    }
+    
+    .items-list {
+      margin-top: 10px;
+      border-top: 1px dashed #eee;
+      padding-top: 10px;
+    }
+    
+    .item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
     }
     
     .loading {
       text-align: center;
-      padding: 20px;
+      padding: 30px;
       color: #666;
+    }
+    
+    .no-orders {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
+    
+    .print-btn {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 8px 15px;
+      background-color: #dfb33a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <img src="logo.webp" alt="Profile" class="profile-pic">
-    <div class="header-info">
-      <div class="header-title">Pedidos Recebidos</div>
-    </div>
+    <img src="logo.webp" alt="Logo" class="profile-pic">
+    <div class="header-title">Pedidos Recebidos</div>
   </div>
   
-  <div class="messages-container" id="messages-container">
+  <div class="date-filter">
+    <select id="date-select">
+      <option value="all">Todos os pedidos</option>
+      <!-- As opções de data serão preenchidas pelo JavaScript -->
+    </select>
+  </div>
+  
+  <div class="orders-container" id="orders-container">
     <div class="loading">Carregando pedidos...</div>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const API_URL = "https://opensheet.elk.sh/1_KqTCa8u1G49hRs3Vzf-SfU_uGLSYXlK1sAJHMqR_Ic/Pedidos";
-      const messagesContainer = document.getElementById('messages-container');
+      const ordersContainer = document.getElementById('orders-container');
+      const dateSelect = document.getElementById('date-select');
       
-      // Formata a data para o padrão brasileiro
-      function formatDate(dateStr) {
+      // Formata a data para exibição
+      function formatDisplayDate(dateStr) {
         if (!dateStr) return '';
         
         try {
@@ -159,17 +180,31 @@
         }
       }
       
+      // Formata a data para uso como chave (YYYY-MM-DD)
+      function formatDateKey(dateStr) {
+        if (!dateStr) return '';
+        
+        try {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return '';
+          
+          return date.toISOString().split('T')[0];
+        } catch (e) {
+          return '';
+        }
+      }
+      
       // Formata o horário
       function formatTime(dateStr) {
         if (!dateStr) return '';
         
         try {
           const date = new Date(dateStr);
-          if (isNaN(date.getTime())) return dateStr;
+          if (isNaN(date.getTime())) return '';
           
           return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         } catch (e) {
-          return dateStr;
+          return '';
         }
       }
       
@@ -192,136 +227,190 @@
         return phone;
       }
       
-      // Cria o texto do pedido no formato do comprovante WhatsApp
-      function createOrderMessage(order) {
-        // Calcula o total considerando a taxa de entrega se aplicável
-        const total = order['Entrega/Retirada'] === 'Entrega' ? 
-          (parseFloat(order['Preço Total']) + 3).toFixed(2) : 
-          order['Preço Total'];
+      // Cria o HTML de um pedido
+      function createOrderHTML(order) {
+        // Calcula o total considerando a taxa de entrega se for entrega
+        const isDelivery = order['Entrega/Retirada'] === 'Entrega';
+        const total = isDelivery ? (parseFloat(order['Preço Total']) + 3).toFixed(2) : order['Preço Total'];
         
-        let message = `================================\n`;
-        message += `         COMPROVANTE DE PEDIDO\n`;
-        message += `================================\n\n`;
-        
-        message += `Nome: ${order['Nome do Cliente'] || ''}\n`;
-        message += `WhatsApp: ${formatPhone(order['Número do Cliente'])}\n`;
-        message += `Tipo de Entrega: ${order['Entrega/Retirada'] === 'Entrega' ? 'ENTREGA' : 'RETIRADA'}\n\n`;
-
-        if (order['Entrega/Retirada'] === 'Entrega') {
-          message += `Cidade: ${order.Cidade || ''}\n`;
-          message += `Ponto de Referência: ${order['Ponto de Referência'] || ''}\n`;
-          if (order.Complemento) {
-            message += `Complemento: ${order.Complemento}\n`;
-          }
-          message += `Taxa de entrega: R$ 3,00\n\n`;
-        }
-
-        message += `-----------------------------------------------------\n`;
-        message += `Forma de Pagamento: ${order['Forma de Pagamento'] || ''}\n`;
-        if (order['Forma de Pagamento'] === 'Pix') {
-          message += `Chave Pix: 98982066609\n`;
-        }
-        message += `-----------------------------------------------------\n\n`;
-
-        message += `Itens do Pedido:\n`;
-        // Simulando os itens (ajuste conforme sua estrutura real de dados)
+        // Separa os itens (assumindo que estão separados por vírgula)
         const items = order.Produtos ? order.Produtos.split(',') : [];
-        items.forEach(item => {
-          message += `➤ ${item.trim()}\n`;
-        });
-        message += `\n`;
-
-        message += `-----------------------------------------------------\n`;
-        message += `TOTAL DO PEDIDO: ${formatPrice(total)}\n`;
-        message += `-----------------------------------------------------\n\n`;
         
-        message += `Data/Hora: ${formatDate(order['Data/Hora'])} ${formatTime(order['Data/Hora'])}\n\n`;
-        message += `OBS: O pedido só será reservado após a confirmação do pagamento.`;
-
-        return message;
-      }
-
-      // Agrupa pedidos por data
-      function groupOrdersByDate(orders) {
-        const grouped = {};
-        
-        orders.forEach(order => {
-          const dateStr = order['Data/Hora'];
-          if (!dateStr) return;
-          
-          const date = new Date(dateStr);
-          if (isNaN(date.getTime())) return;
-          
-          // Usa apenas a data (ignora horas) para agrupamento
-          const dateKey = date.toISOString().split('T')[0];
-          
-          if (!grouped[dateKey]) {
-            grouped[dateKey] = [];
-          }
-          
-          grouped[dateKey].push(order);
-        });
-        
-        return grouped;
+        return `
+          <div class="order-card">
+            <div class="order-header">👋 NOVO PEDIDO</div>
+            
+            <div class="order-field">
+              <div class="field-label">Tipo:</div>
+              <div class="field-value">
+                ${isDelivery ? '🚚 ENTREGA' : '🛍️ RETIRADA NO LOCAL'}
+              </div>
+            </div>
+            
+            <div class="order-field">
+              <div class="field-label">Nome:</div>
+              <div class="field-value">${order['Nome do Cliente'] || '-'}</div>
+            </div>
+            
+            <div class="order-field">
+              <div class="field-label">WhatsApp:</div>
+              <div class="field-value">${formatPhone(order['Número do Cliente'])}</div>
+            </div>
+            
+            ${isDelivery ? `
+              <div class="order-field">
+                <div class="field-label">Endereço:</div>
+                <div class="field-value">${order.Cidade || ''}, ${order['Ponto de Referência'] || ''}</div>
+              </div>
+              
+              ${order.Complemento ? `
+                <div class="order-field">
+                  <div class="field-label">Complemento:</div>
+                  <div class="field-value">${order.Complemento}</div>
+                </div>
+              ` : ''}
+              
+              <div class="order-field">
+                <div class="field-label">Taxa de entrega:</div>
+                <div class="field-value">R$ 3,00</div>
+              </div>
+            ` : ''}
+            
+            <div class="order-field">
+              <div class="field-label">Pagamento:</div>
+              <div class="field-value">${order['Forma de Pagamento'] || '-'}</div>
+            </div>
+            
+            ${order['Forma de Pagamento'] === 'Pix' ? `
+              <div class="order-field">
+                <div class="field-label">Chave Pix:</div>
+                <div class="field-value">98982066609</div>
+              </div>
+            ` : ''}
+            
+            <div class="items-list">
+              <div class="order-field" style="margin-bottom: 10px;">
+                <div class="field-label">Itens:</div>
+                <div class="field-value"></div>
+              </div>
+              
+              ${items.map(item => `
+                <div class="item">
+                  <span>${item.trim()}</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div class="order-field" style="margin-top: 10px; font-weight: bold;">
+              <div class="field-label">Total:</div>
+              <div class="field-value">${formatPrice(total)}</div>
+            </div>
+            
+            <div class="order-field">
+              <div class="field-label">Data/Hora:</div>
+              <div class="field-value">${formatTime(order['Data/Hora'])}</div>
+            </div>
+            
+            <button class="print-btn">🖨️ Imprimir</button>
+          </div>
+        `;
       }
       
-      // Renderiza os pedidos agrupados por data
-      function renderOrders(groupedOrders) {
-        messagesContainer.innerHTML = '';
+      // Renderiza todos os pedidos
+      function renderOrders(orders, selectedDate = 'all') {
+        if (orders.length === 0) {
+          ordersContainer.innerHTML = '<div class="no-orders">Nenhum pedido encontrado</div>';
+          return;
+        }
+        
+        // Agrupa pedidos por data
+        const ordersByDate = {};
+        const uniqueDates = new Set();
+        
+        orders.forEach(order => {
+          const dateKey = formatDateKey(order['Data/Hora']);
+          if (!dateKey) return;
+          
+          uniqueDates.add(dateKey);
+          
+          if (!ordersByDate[dateKey]) {
+            ordersByDate[dateKey] = [];
+          }
+          
+          ordersByDate[dateKey].push(order);
+        });
         
         // Ordena as datas do mais recente para o mais antigo
-        const sortedDates = Object.keys(groupedOrders).sort((a, b) => new Date(b) - new Date(a));
+        const sortedDates = Array.from(uniqueDates).sort((a, b) => new Date(b) - new Date(a));
         
-        sortedDates.forEach(dateKey => {
-          const orders = groupedOrders[dateKey];
-          const firstOrder = orders[0];
-          const formattedDate = formatDate(firstOrder['Data/Hora']);
+        // Atualiza o seletor de datas
+        updateDateFilter(sortedDates);
+        
+        // Filtra por data selecionada
+        const datesToShow = selectedDate === 'all' 
+          ? sortedDates 
+          : sortedDates.filter(date => date === selectedDate);
+        
+        // Renderiza os pedidos
+        let html = '';
+        
+        datesToShow.forEach(dateKey => {
+          const displayDate = formatDisplayDate(dateKey);
+          html += `<div class="date-separator">${displayDate}</div>`;
           
-          // Adiciona separador de data
-          const dateSeparator = document.createElement('div');
-          dateSeparator.className = 'date-separator';
-          dateSeparator.innerHTML = `<span>${formattedDate}</span>`;
-          messagesContainer.appendChild(dateSeparator);
-          
-          // Adiciona os pedidos dessa data
-          orders.forEach(order => {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-            
-            const messageText = document.createElement('div');
-            messageText.className = 'message-text';
-            messageText.textContent = createOrderMessage(order);
-            
-            const printBtn = document.createElement('div');
-            printBtn.className = 'print-btn';
-            printBtn.textContent = '🖨️ Imprimir';
-            
-            messageContent.appendChild(messageText);
-            messageContent.appendChild(printBtn);
-            messageDiv.appendChild(messageContent);
-            messagesContainer.appendChild(messageDiv);
+          ordersByDate[dateKey].forEach(order => {
+            html += createOrderHTML(order);
           });
         });
         
-        if (sortedDates.length === 0) {
-          messagesContainer.innerHTML = '<div class="message"><div class="message-content"><div class="message-text">Nenhum pedido encontrado</div></div></div>';
+        ordersContainer.innerHTML = html || '<div class="no-orders">Nenhum pedido encontrado para esta data</div>';
+      }
+      
+      // Atualiza o seletor de datas
+      function updateDateFilter(dates) {
+        // Limpa opções existentes (mantendo apenas "Todos os pedidos")
+        while (dateSelect.options.length > 1) {
+          dateSelect.remove(1);
         }
+        
+        // Adiciona novas opções de data
+        dates.forEach(date => {
+          const option = document.createElement('option');
+          option.value = date;
+          option.textContent = formatDisplayDate(date);
+          dateSelect.appendChild(option);
+        });
       }
       
       // Carrega os dados da planilha
-      fetch(API_URL)
-        .then(response => response.json())
-        .then(data => {
-          const groupedOrders = groupOrdersByDate(data);
-          renderOrders(groupedOrders);
-        })
-        .catch(error => {
-          console.error('Erro ao carregar pedidos:', error);
-          messagesContainer.innerHTML = '<div class="message"><div class="message-content"><div class="message-text">Erro ao carregar pedidos. Tente novamente mais tarde.</div></div></div>';
-        });
+      function loadOrders() {
+        fetch(API_URL)
+          .then(response => response.json())
+          .then(data => {
+            // Filtra pedidos com data válida e ordena do mais recente para o mais antigo
+            const validOrders = data.filter(order => {
+              try {
+                return order['Data/Hora'] && !isNaN(new Date(order['Data/Hora']).getTime());
+              } catch (e) {
+                return false;
+              }
+            }).sort((a, b) => new Date(b['Data/Hora']) - new Date(a['Data/Hora']));
+            
+            renderOrders(validOrders);
+            
+            // Configura o filtro por data
+            dateSelect.addEventListener('change', function() {
+              renderOrders(validOrders, this.value);
+            });
+          })
+          .catch(error => {
+            console.error('Erro ao carregar pedidos:', error);
+            ordersContainer.innerHTML = '<div class="no-orders">Erro ao carregar pedidos. Tente novamente mais tarde.</div>';
+          });
+      }
+      
+      // Inicia o carregamento dos pedidos
+      loadOrders();
     });
   </script>
 </body>
