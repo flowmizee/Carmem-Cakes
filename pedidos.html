@@ -156,13 +156,18 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const API_URL = "https://opensheet.elk.sh/1Lo79-R6nFBKdgPqxOJAZuVA-xMP_MusVtlQQ9BRSVms/Pedidos";
+      const API_URL = "https://opensheet.elk.sh/1_KqTCa8u1G49hRs3Vzf-SfU_uGLSYXlK1sAJHMqR_Ic/Pedidos";
       const ordersContainer = document.getElementById('orders-container');
       const dateSelect = document.getElementById('date-select');
       
+      // Função para verificar se um valor existe
+      function getValue(value, defaultValue = '-') {
+        return value !== undefined && value !== null && value !== '' ? value : defaultValue;
+      }
+
       // Formata a data para exibição
       function formatDisplayDate(dateStr) {
-        if (!dateStr) return '';
+        if (!dateStr) return 'Data não informada';
         
         try {
           const date = new Date(dateStr);
@@ -171,10 +176,7 @@
           const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
           let formatted = date.toLocaleDateString('pt-BR', options);
           
-          // Capitaliza o dia da semana
-          formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
-          
-          return formatted.replace(',', ' -');
+          return formatted.charAt(0).toUpperCase() + formatted.slice(1).replace(',', ' -');
         } catch (e) {
           return dateStr;
         }
@@ -196,46 +198,71 @@
       
       // Formata o horário
       function formatTime(dateStr) {
-        if (!dateStr) return '';
+        if (!dateStr) return 'Horário não informado';
         
         try {
           const date = new Date(dateStr);
-          if (isNaN(date.getTime())) return '';
+          if (isNaN(date.getTime())) return dateStr;
           
           return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         } catch (e) {
-          return '';
+          return dateStr;
         }
       }
       
       // Formata o preço
       function formatPrice(price) {
-        if (!price) return 'R$ 0,00';
-        return 'R$ ' + parseFloat(price).toFixed(2).replace('.', ',');
+        try {
+          const value = parseFloat(price);
+          return isNaN(value) ? 'R$ 0,00' : 'R$ ' + value.toFixed(2).replace('.', ',');
+        } catch (e) {
+          return 'R$ 0,00';
+        }
       }
       
       // Formata o número de telefone
       function formatPhone(phone) {
-        if (!phone) return '';
-        phone = phone.toString().replace(/\D/g, '');
+        if (!phone) return 'Não informado';
         
-        if (phone.length === 11) {
-          return `(${phone.substring(0, 2)}) ${phone.substring(2, 7)}-${phone.substring(7)}`;
-        } else if (phone.length === 10) {
-          return `(${phone.substring(0, 2)}) ${phone.substring(2, 6)}-${phone.substring(6)}`;
+        try {
+          phone = phone.toString().replace(/\D/g, '');
+          
+          if (phone.length === 11) {
+            return `(${phone.substring(0, 2)}) ${phone.substring(2, 7)}-${phone.substring(7)}`;
+          } else if (phone.length === 10) {
+            return `(${phone.substring(0, 2)}) ${phone.substring(2, 6)}-${phone.substring(6)}`;
+          }
+          return phone;
+        } catch (e) {
+          return phone;
         }
-        return phone;
       }
       
       // Cria o HTML de um pedido
       function createOrderHTML(order) {
-        // Calcula o total considerando a taxa de entrega se for entrega
+        // Verifica e calcula o total
+        let totalValue = 0;
+        try {
+          totalValue = parseFloat(order['Preço Total']) || 0;
+        } catch (e) {
+          totalValue = 0;
+        }
+        
         const isDelivery = order['Entrega/Retirada'] === 'Entrega';
-        const total = isDelivery ? (parseFloat(order['Preço Total']) + 3).toFixed(2) : order['Preço Total'];
+        const total = isDelivery ? (totalValue + 3).toFixed(2) : totalValue.toFixed(2);
         
-        // Separa os itens (assumindo que estão separados por vírgula)
-        const items = order.Produtos ? order.Produtos.split(',') : [];
-        
+        // Processa os itens do pedido
+        let items = [];
+        try {
+          items = order.Produtos ? 
+            (Array.isArray(order.Produtos) ? order.Produtos : order.Produtos.split(','))
+              .filter(item => item.trim() !== '')
+              .map(item => item.trim())
+            : ['Itens não especificados'];
+        } catch (e) {
+          items = ['Itens não especificados'];
+        }
+
         return `
           <div class="order-card">
             <div class="order-header">👋 NOVO PEDIDO</div>
@@ -249,24 +276,26 @@
             
             <div class="order-field">
               <div class="field-label">Nome:</div>
-              <div class="field-value">${order['Nome do Cliente'] || '-'}</div>
+              <div class="field-value">${getValue(order['Nome do Cliente'])}</div>
             </div>
             
             <div class="order-field">
               <div class="field-label">WhatsApp:</div>
-              <div class="field-value">${formatPhone(order['Número do Cliente'])}</div>
+              <div class="field-value">${formatPhone(getValue(order['Número do Cliente']))}</div>
             </div>
             
             ${isDelivery ? `
               <div class="order-field">
                 <div class="field-label">Endereço:</div>
-                <div class="field-value">${order.Cidade || ''}, ${order['Ponto de Referência'] || ''}</div>
+                <div class="field-value">
+                  ${getValue(order.Cidade)}, ${getValue(order['Ponto de Referência'])}
+                </div>
               </div>
               
               ${order.Complemento ? `
                 <div class="order-field">
                   <div class="field-label">Complemento:</div>
-                  <div class="field-value">${order.Complemento}</div>
+                  <div class="field-value">${getValue(order.Complemento)}</div>
                 </div>
               ` : ''}
               
@@ -278,7 +307,7 @@
             
             <div class="order-field">
               <div class="field-label">Pagamento:</div>
-              <div class="field-value">${order['Forma de Pagamento'] || '-'}</div>
+              <div class="field-value">${getValue(order['Forma de Pagamento'])}</div>
             </div>
             
             ${order['Forma de Pagamento'] === 'Pix' ? `
@@ -296,7 +325,7 @@
               
               ${items.map(item => `
                 <div class="item">
-                  <span>${item.trim()}</span>
+                  <span>${item}</span>
                 </div>
               `).join('')}
             </div>
@@ -318,7 +347,7 @@
       
       // Renderiza todos os pedidos
       function renderOrders(orders, selectedDate = 'all') {
-        if (orders.length === 0) {
+        if (!orders || orders.length === 0) {
           ordersContainer.innerHTML = '<div class="no-orders">Nenhum pedido encontrado</div>';
           return;
         }
@@ -385,7 +414,10 @@
       // Carrega os dados da planilha
       function loadOrders() {
         fetch(API_URL)
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) throw new Error('Erro na rede');
+            return response.json();
+          })
           .then(data => {
             // Filtra pedidos com data válida e ordena do mais recente para o mais antigo
             const validOrders = data.filter(order => {
@@ -405,7 +437,12 @@
           })
           .catch(error => {
             console.error('Erro ao carregar pedidos:', error);
-            ordersContainer.innerHTML = '<div class="no-orders">Erro ao carregar pedidos. Tente novamente mais tarde.</div>';
+            ordersContainer.innerHTML = `
+              <div class="no-orders">
+                Erro ao carregar pedidos. Tente novamente mais tarde.
+                <div style="margin-top: 10px; font-size: 12px;">${error.message}</div>
+              </div>
+            `;
           });
       }
       
