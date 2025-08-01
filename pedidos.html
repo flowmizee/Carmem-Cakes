@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Painel de Pedidos</title>
+  <title>📦 Painel de Pedidos</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,8 +15,6 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       margin-bottom: 15px;
       padding: 15px;
-    }
-    .pedido pre {
       white-space: pre-wrap;
       font-size: 15px;
     }
@@ -37,7 +35,7 @@
 <div id="lista-pedidos"></div>
 
 <script>
-  const URL_PLANILHA = "https://opensheet.elk.sh/1_KqTCa8u1G49hRs3Vzf-SfU_uGLSYXlK1sAJHMqR_Ic/Pedidos"; // coloque o ID real aqui
+  const URL_PLANILHA = "https://opensheet.elk.sh/1_KqTCa8u1G49hRs3Vzf-SfU_uGLSYXlK1sAJHMqR_Ic/Pedidos";
 
   function carregarPedidos() {
     fetch(URL_PLANILHA)
@@ -53,27 +51,41 @@
           const mensagem = formatarMensagem(pedido);
 
           div.innerHTML = `
-            <pre>${mensagem}</pre>
+            ${mensagem}
             <div class="botoes">
               <button onclick="imprimirTexto(\`${mensagem.replace(/`/g, "\\`")}\`)">🖨️ Imprimir</button>
             </div>
           `;
           container.appendChild(div);
         });
+      })
+      .catch(err => {
+        document.getElementById("lista-pedidos").textContent = "Erro ao carregar pedidos.";
+        console.error(err);
       });
   }
 
   function formatarMensagem(p) {
-    const entregaOuRetirada = p.entrega === "Retirada"
+    const entregaOuRetirada = (p["Entrega/Retirada"] || "").toLowerCase() === "retirada"
       ? "🛍️ *RETIRADA NO LOCAL*"
-      : `🚚 *ENTREGA*\n📍 *Endereço:* ${p.endereco}, Nº ${p.numero}, ${p.bairro}\n📞 *Contato:* ${p.telefone}`;
+      : `🚚 *ENTREGA*\n📍 *Cidade:* ${p["Cidade"] || '-'}\n📍 *Ponto de Referência:* ${p["Ponto de Referência"] || '-'}\n📍 *Complemento:* ${p["Complemento"] || '-'}`;
 
-    return `👋 *NOVO PEDIDO*\n\n${entregaOuRetirada}\n\n📦 *Itens:* ${p.itens}\n💰 *Total:* R$ ${p.total}\n\n👤 *Nome:* ${p.nome}\n📅 *Data:* ${p.data}\n🕒 *Horário:* ${p.horario}`;
+    // Formatar Data/Hora separando
+    let dataHora = p["Data/Hora"] || "";
+    let data = "";
+    let hora = "";
+    if (dataHora.includes(" ")) {
+      [data, hora] = dataHora.split(" ");
+    } else {
+      data = dataHora;
+    }
+
+    return `👋 *NOVO PEDIDO*\n\n${entregaOuRetirada}\n\n📦 *Itens:* ${p["Produtos"] || '-'}\n🧮 *Quantidade:* ${p["Quantidade"] || '-'}\n💰 *Preço Total:* R$ ${p["Preço Total"] || '-'}\n\n👤 *Nome:* ${p["Nome do Cliente"] || '-'}\n📞 *Contato:* ${p["Número do Cliente"] || '-'}\n📅 *Data:* ${data}\n🕒 *Horário:* ${hora}\n\n💳 *Forma de Pagamento:* ${p["Forma de Pagamento"] || '-'}`;
   }
 
   function imprimirTexto(texto) {
     const printWindow = window.open('', '_blank', 'width=600,height=600');
-    printWindow.document.write(`<pre>${texto}</pre>`);
+    printWindow.document.write(`<pre style="font-family: monospace; font-size: 16px;">${texto}</pre>`);
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
