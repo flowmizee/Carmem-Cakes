@@ -535,7 +535,7 @@
         this.value = this.value.replace(/\D/g, '');
       });
 
-      // Enviar pedido - Versão otimizada
+      // Enviar pedido - Versão corrigida com cidade
       document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -553,9 +553,10 @@
         }
 
         const tipoEntrega = tipoEntregaSelect.value;
+        let cidade = '';
         
         if (tipoEntrega === 'entrega') {
-          const cidade = document.getElementById('cidade').value.trim();
+          cidade = document.getElementById('cidade').value.trim();
           if (!cidade) {
             errorCidade.textContent = 'Por favor, informe a cidade.';
             document.getElementById('cidade').focus();
@@ -570,7 +571,7 @@
           }
         }
 
-        // 1. Primeiro: Prepara os dados
+        // 1. Prepara os dados
         const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.preco) * item.quantidade), 0);
         const total = tipoEntrega === 'entrega' ? subtotal + DELIVERY_FEE : subtotal;
         const totalFormatado = formatPrice(total);
@@ -581,7 +582,7 @@
 
         const totalItems = cartItems.reduce((sum, item) => sum + item.quantidade, 0);
 
-        // 2. Monta a mensagem do WhatsApp IMEDIATAMENTE (SEM NEGRITO)
+        // 2. Monta mensagem do WhatsApp
         let message = `================================%0A`;
         message += `         COMPROVANTE DE PEDIDO%0A`;
         message += `================================%0A%0A`;
@@ -590,7 +591,7 @@
         message += `Tipo de Entrega: ${tipoEntrega === 'entrega' ? 'ENTREGA' : 'RETIRADA'}%0A%0A`;
 
         if (tipoEntrega === 'entrega') {
-          message += `Cidade: ${document.getElementById('cidade').value}%0A`;
+          message += `Cidade: ${cidade}%0A`;
           message += `Ponto de Referência: ${document.getElementById('referencia').value}%0A`;
           const complemento = document.getElementById('complemento').value;
           if (complemento) {
@@ -619,17 +620,17 @@
         
         message += `OBS: O pedido só será reservado após a confirmação do pagamento via PIX.`;
 
-        // 3. ABRE O WHATSAPP IMEDIATAMENTE (ANTES DE QUALQUER OUTRA AÇÃO)
+        // 3. Abre WhatsApp
         window.open(`https://wa.me/5598982066609?text=${message}`, '_blank');
 
-        // 4. Limpa o carrinho (feedback visual imediato)
+        // 4. Limpa carrinho
         localStorage.removeItem('cartItems');
         renderCartItems();
         renderCartCount();
         hideModal();
         showNotification("Pedido registrado com sucesso!");
 
-        // 5. Envia para o AppScript EM SEGUNDO PLANO (sem bloquear a interface)
+        // 5. Envia para AppScript (COM CIDADE INCLUÍDA)
         const formData = {
           nome: document.getElementById('nome').value,
           whatsapp: whatsapp,
@@ -637,12 +638,15 @@
           qtdTotal: totalItems,
           total: totalFormatado,
           tipoEntrega: tipoEntrega,
+          cidade: cidade, // CORREÇÃO PRINCIPAL AQUI
           referencia: tipoEntrega === 'entrega' ? document.getElementById('referencia').value : '',
           complemento: tipoEntrega === 'entrega' ? document.getElementById('complemento').value : '',
           pagamento: document.getElementById('pagamento').value
         };
 
-        // Usando setTimeout com delay 0 para não bloquear a interface
+        // Debug no console
+        console.log("Dados enviados para planilha:", formData);
+
         setTimeout(() => {
           const params = new URLSearchParams(formData);
           fetch(`${APPSCRIPT_URL}?${params}`)
