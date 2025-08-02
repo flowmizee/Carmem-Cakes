@@ -328,8 +328,8 @@
         <label class="required">Tipo de Entrega</label>
         <select id="tipoEntrega" required>
           <option value="">Selecione...</option>
-          <option value="retirada">Retirada</option>
-          <option value="entrega">Entrega (+ R$ 3,00)</option>
+          <option value="retirada" id="retirada-option">Retirada</option>
+          <option value="entrega" id="entrega-option">Entrega (+ R$ 3,00)</option>
         </select>
       </div>
 
@@ -412,10 +412,93 @@
       const errorCidade = document.getElementById('error-cidade');
       const notification = document.getElementById('notification');
       const tipoEntregaSelect = document.getElementById('tipoEntrega');
+      const retiradaOption = document.getElementById('retirada-option');
+      const entregaOption = document.getElementById('entrega-option');
 
       // URL do Google AppScript
       const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDYE6JXSkvYCfWtJ3qkzOMY7AfKkYK4pLw4SXKyVve85JNAupjU11znQtzTMCrtIAh4A/exec";
       const DELIVERY_FEE = 3.00;
+      const PRODUCTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRpRIMaL2mtK3AyrckDd8DI9cZIWZX17I8bB-oUidxXWa60sD7S1HvHE-9cpPUTFJVSpPY7d7CSIzpc/pub?output=csv";
+
+      // Variáveis para controle de entrega/retirada
+      let deliveryAvailable = false;
+      let pickupAvailable = false;
+
+      // Função para carregar configurações de entrega/retirada
+      async function loadDeliveryOptions() {
+        try {
+          const response = await fetch(PRODUCTS_CSV_URL);
+          const csvData = await response.text();
+          const rows = csvData.split('\n');
+          
+          // Encontra os índices das colunas "Entrega" e "Retirada"
+          const headers = rows[0].split(',');
+          const entregaIndex = headers.findIndex(h => h.trim() === "Entrega");
+          const retiradaIndex = headers.findIndex(h => h.trim() === "Retirada");
+          
+          // Verifica se encontrou as colunas
+          if (entregaIndex === -1 || retiradaIndex === -1) {
+            console.error("Colunas 'Entrega' ou 'Retirada' não encontradas na planilha");
+            // Mantém as opções padrão se não encontrar as colunas
+            deliveryAvailable = true;
+            pickupAvailable = true;
+            updateDeliveryOptions();
+            return;
+          }
+          
+          // Analisa a primeira linha de dados (segunda linha do CSV)
+          if (rows.length > 1) {
+            const firstDataRow = rows[1].split(',');
+            const entregaValue = firstDataRow[entregaIndex] ? firstDataRow[entregaIndex].trim().toLowerCase() : '';
+            const retiradaValue = firstDataRow[retiradaIndex] ? firstDataRow[retiradaIndex].trim().toLowerCase() : '';
+            
+            // Define a disponibilidade baseado em "Sim" ou "Nao"
+            deliveryAvailable = entregaValue === 'sim';
+            pickupAvailable = retiradaValue === 'sim';
+          }
+          
+          // Atualiza as opções no select
+          updateDeliveryOptions();
+        } catch (error) {
+          console.error('Erro ao carregar opções de entrega:', error);
+          // Mantém as opções padrão se houver erro
+          deliveryAvailable = true;
+          pickupAvailable = true;
+          updateDeliveryOptions();
+        }
+      }
+
+      // Função para atualizar as opções de entrega no select
+      function updateDeliveryOptions() {
+        // Remove todas as opções exceto a primeira (Selecione...)
+        while (tipoEntregaSelect.options.length > 1) {
+          tipoEntregaSelect.remove(1);
+        }
+        
+        // Adiciona as opções disponíveis
+        if (pickupAvailable) {
+          const pickupOption = document.createElement('option');
+          pickupOption.value = 'retirada';
+          pickupOption.textContent = 'Retirada';
+          pickupOption.id = 'retirada-option';
+          tipoEntregaSelect.appendChild(pickupOption);
+        }
+        
+        if (deliveryAvailable) {
+          const deliveryOption = document.createElement('option');
+          deliveryOption.value = 'entrega';
+          deliveryOption.textContent = 'Entrega (+ R$ 3,00)';
+          deliveryOption.id = 'entrega-option';
+          tipoEntregaSelect.appendChild(deliveryOption);
+        }
+        
+        // Se só houver uma opção, seleciona automaticamente
+        if (pickupAvailable && !deliveryAvailable) {
+          tipoEntregaSelect.value = 'retirada';
+        } else if (!pickupAvailable && deliveryAvailable) {
+          tipoEntregaSelect.value = 'entrega';
+        }
+      }
 
       // Funções do carrinho
       function renderCartCount() {
@@ -434,7 +517,7 @@
         
         cartTotalEl.textContent = formatPrice(subtotal);
         
-        if (isDelivery) {
+        if (isDelivery && deliveryAvailable) {
           const totalWithDelivery = subtotal + DELIVERY_FEE;
           deliveryFeeEl.style.display = 'block';
           totalWithDeliveryEl.style.display = 'flex';
@@ -535,7 +618,7 @@
         this.value = this.value.replace(/\D/g, '');
       });
 
-      // Enviar pedido - Versão corrigida com cidade
+      // Enviar pedido
       document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -630,7 +713,7 @@
         hideModal();
         showNotification("Pedido registrado com sucesso!");
 
-        // 5. Envia para AppScript (COM CIDADE INCLUÍDA)
+        // 5. Envia para AppScript
         const formData = {
           nome: document.getElementById('nome').value,
           whatsapp: whatsapp,
@@ -638,7 +721,7 @@
           qtdTotal: totalItems,
           total: totalFormatado,
           tipoEntrega: tipoEntrega,
-          cidade: cidade, // CORREÇÃO PRINCIPAL AQUI
+          cidade: cidade,
           referencia: tipoEntrega === 'entrega' ? document.getElementById('referencia').value : '',
           complemento: tipoEntrega === 'entrega' ? document.getElementById('complemento').value : '',
           pagamento: document.getElementById('pagamento').value
@@ -662,8 +745,10 @@
       });
 
       // Inicialização
-      renderCartItems();
-      renderCartCount();
+      loadDeliveryOptions().then(() => {
+        renderCartItems();
+        renderCartCount();
+      });
     });
   </script>
 </body>
