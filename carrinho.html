@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Carrinho</title>
   <style>
     html, body { margin: 0; padding: 0; height: 100%; }
@@ -277,6 +277,9 @@
       margin-top: 8px;
     }
   </style>
+
+  <!-- PapaParse CDN adicionado -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <div class="nav-wrapper">
@@ -328,8 +331,7 @@
         <label class="required">Tipo de Entrega</label>
         <select id="tipoEntrega" required>
           <option value="">Selecione...</option>
-          <option value="retirada" id="retirada-option">Retirada</option>
-          <option value="entrega" id="entrega-option">Entrega (+ R$ 3,00)</option>
+          <!-- opções serão atualizadas dinamicamente -->
         </select>
       </div>
 
@@ -427,11 +429,17 @@
       }
 
       function formatPrice(price) {
-        return 'R$ ' + parseFloat(price).toFixed(2).replace('.', ',');
+        // aceita number ou string (com vírgula)
+        const n = typeof price === 'string' ? parseFloat(price.replace(',', '.')) : parseFloat(price);
+        if (isNaN(n)) return 'R$ 0,00';
+        return 'R$ ' + n.toFixed(2).replace('.', ',');
       }
 
       function calculateTotal() {
-        let subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.preco) * item.quantidade), 0);
+        let subtotal = cartItems.reduce((sum, item) => {
+          const p = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : parseFloat(item.preco);
+          return sum + ( (isNaN(p) ? 0 : p) * item.quantidade );
+        }, 0);
         const isDelivery = tipoEntregaSelect.value === 'entrega';
         
         cartTotalEl.textContent = formatPrice(subtotal);
@@ -458,7 +466,7 @@
         calculateTotal();
 
         cartItems.forEach((item, index) => {
-          const subtotal = parseFloat(item.preco) * item.quantidade;
+          const subtotal = (parseFloat((typeof item.preco === 'string' ? item.preco.replace(',','.') : item.preco)) || 0) * item.quantidade;
 
           const itemEl = document.createElement('div');
           itemEl.className = 'cart-item';
@@ -494,46 +502,24 @@
       renderCartItems();
       renderCartCount();
 
-      // 2. Depois carrega as opções de entrega em segundo plano
-      async function loadDeliveryOptions() {
+      /* ================================
+         loadDeliveryOptions -> usando PapaParse
+         ================================ */
+      function normalizeHeader(h) {
+        if (!h) return '';
         try {
-          const response = await fetch(PRODUCTS_CSV_URL);
-          const csvData = await response.text();
-          const rows = csvData.split('\n');
-          
-          // Encontra os índices das colunas "Entrega" e "Retirada"
-          const headers = rows[0].split(',');
-          const entregaIndex = headers.findIndex(h => h.trim() === "Entrega");
-          const retiradaIndex = headers.findIndex(h => h.trim() === "Retirada");
-          
-          // Verifica se encontrou as colunas
-          if (entregaIndex === -1 || retiradaIndex === -1) {
-            console.error("Colunas 'Entrega' ou 'Retirada' não encontradas na planilha");
-            return;
-          }
-          
-          // Analisa a primeira linha de dados (segunda linha do CSV)
-          if (rows.length > 1) {
-            const firstDataRow = rows[1].split(',');
-            const entregaValue = firstDataRow[entregaIndex] ? firstDataRow[entregaIndex].trim().toLowerCase() : '';
-            const retiradaValue = firstDataRow[retiradaIndex] ? firstDataRow[retiradaIndex].trim().toLowerCase() : '';
-            
-            // Atualiza as opções no select
-            updateDeliveryOptions(entregaValue === 'sim', retiradaValue === 'sim');
-          }
-        } catch (error) {
-          console.error('Erro ao carregar opções de entrega:', error);
+          return h.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        } catch {
+          return String(h).toLowerCase().trim();
         }
       }
 
-      // Função para atualizar as opções de entrega no select
       function updateDeliveryOptions(deliveryAvailable, pickupAvailable) {
-        // Remove todas as opções exceto a primeira (Selecione...)
+        // remove todas as opções exceto a primeira
         while (tipoEntregaSelect.options.length > 1) {
           tipoEntregaSelect.remove(1);
         }
-        
-        // Adiciona as opções disponíveis
+
         if (pickupAvailable) {
           const pickupOption = document.createElement('option');
           pickupOption.value = 'retirada';
@@ -541,7 +527,7 @@
           pickupOption.id = 'retirada-option';
           tipoEntregaSelect.appendChild(pickupOption);
         }
-        
+
         if (deliveryAvailable) {
           const deliveryOption = document.createElement('option');
           deliveryOption.value = 'entrega';
@@ -549,16 +535,82 @@
           deliveryOption.id = 'entrega-option';
           tipoEntregaSelect.appendChild(deliveryOption);
         }
-        
-        // Se só houver uma opção, seleciona automaticamente
-        if (pickupAvailable && !deliveryAvailable) {
-          tipoEntregaSelect.value = 'retirada';
-        } else if (!pickupAvailable && deliveryAvailable) {
-          tipoEntregaSelect.value = 'entrega';
+
+        // Se só houver uma opção além do placeholder, seleciona automaticamente
+        if (tipoEntregaSelect.options.length === 2) {
+          tipoEntregaSelect.selectedIndex = 1;
+          tipoEntregaSelect.dispatchEvent(new Event('change'));
+        } else {
+          // reafirma cálculo (sem entrega)
+          calculateTotal();
         }
       }
 
-      // Inicia o carregamento das opções de entrega em segundo plano
+      function loadDeliveryOptions() {
+        // Usa PapaParse para baixar e parsear o CSV de maneira robusta
+        Papa.parse(PRODUCTS_CSV_URL, {
+          download: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            try {
+              const rows = results.data || [];
+              if (rows.length === 0) {
+                console.warn('CSV vazio');
+                updateDeliveryOptions(false, false);
+                return;
+              }
+              // cabeçalho (linha 0)
+              const headerRow = rows[0].map ? rows[0] : rows[0].slice();
+              const headersNormalized = headerRow.map(h => normalizeHeader(h));
+
+              // tenta encontrar índices por nome de coluna (tolerante)
+              let entregaIndex = headersNormalized.findIndex(h => h === 'entrega' || h.includes('entrega'));
+              let retiradaIndex = headersNormalized.findIndex(h => h === 'retirada' || h.includes('retirada') || h.includes('retira'));
+
+              // se não encontrou, usa fallback para colunas I (índice 8) e J (índice 9)
+              if (entregaIndex === -1) entregaIndex = 8;
+              if (retiradaIndex === -1) retiradaIndex = 9;
+
+              // encontra primeira linha de dados válida (linha >0 com algum conteúdo)
+              let firstDataRow = null;
+              for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row) continue;
+                // se houver pelo menos uma célula com conteúdo
+                if (row.join && row.join('').trim() !== '') {
+                  firstDataRow = row;
+                  break;
+                }
+              }
+
+              if (!firstDataRow) {
+                updateDeliveryOptions(false, false);
+                return;
+              }
+
+              const entregaValueRaw = firstDataRow[entregaIndex] !== undefined ? String(firstDataRow[entregaIndex] || '').trim() : '';
+              const retiradaValueRaw = firstDataRow[retiradaIndex] !== undefined ? String(firstDataRow[retiradaIndex] || '').trim() : '';
+
+              const entregaValue = entregaValueRaw.normalize ? entregaValueRaw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase() : entregaValueRaw.toLowerCase();
+              const retiradaValue = retiradaValueRaw.normalize ? retiradaValueRaw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase() : retiradaValueRaw.toLowerCase();
+
+              const deliveryAvailable = entregaValue === 'sim';
+              const pickupAvailable = retiradaValue === 'sim';
+
+              updateDeliveryOptions(deliveryAvailable, pickupAvailable);
+            } catch (err) {
+              console.error('Erro ao processar CSV com PapaParse', err);
+              updateDeliveryOptions(false, false);
+            }
+          },
+          error: function(err) {
+            console.error('Erro no Papa.parse', err);
+            updateDeliveryOptions(false, false);
+          }
+        });
+      }
+
+      // Carrega as opções de entrega em segundo plano
       loadDeliveryOptions();
 
       // Restante do código (modal, eventos, etc.)
@@ -624,6 +676,8 @@
           errorWhatsapp.textContent = 'WhatsApp inválido! Deve conter 11 dígitos numéricos.';
           document.getElementById('whatsapp').focus();
           return;
+        } else {
+          errorWhatsapp.textContent = '';
         }
 
         const tipoEntrega = tipoEntregaSelect.value;
@@ -635,18 +689,21 @@
             errorCidade.textContent = 'Por favor, informe a cidade.';
             document.getElementById('cidade').focus();
             return;
-          }
+          } else { errorCidade.textContent = ''; }
 
           const referencia = document.getElementById('referencia').value.trim();
           if (!referencia) {
             errorReferencia.textContent = 'Por favor, informe um ponto de referência.';
             document.getElementById('referencia').focus();
             return;
-          }
+          } else { errorReferencia.textContent = ''; }
         }
 
         // 1. Prepara os dados
-        const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.preco) * item.quantidade), 0);
+        const subtotal = cartItems.reduce((sum, item) => {
+          const p = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : parseFloat(item.preco);
+          return sum + ((isNaN(p) ? 0 : p) * item.quantidade);
+        }, 0);
         const total = tipoEntrega === 'entrega' ? subtotal + DELIVERY_FEE : subtotal;
         const totalFormatado = formatPrice(total);
 
@@ -685,7 +742,7 @@
         cartItems.forEach(item => {
           message += `➤ ${item.nome}%0A`;
           message += `   Quantidade: ${item.quantidade}%0A`;
-          message += `   Subtotal: ${formatPrice(parseFloat(item.preco) * item.quantidade)}%0A%0A`;
+          message += `   Subtotal: ${formatPrice(parseFloat((typeof item.preco === 'string' ? item.preco.replace(',','.') : item.preco)) * item.quantidade)}%0A%0A`;
         });
 
         message += `______________________________________%0A`;
@@ -699,12 +756,13 @@
 
         // 4. Limpa carrinho
         localStorage.removeItem('cartItems');
+        cartItems.length = 0; // esvazia
         renderCartItems();
         renderCartCount();
         hideModal();
         showNotification("Pedido registrado com sucesso!");
 
-        // 5. Envia para AppScript
+        // 5. Envia para AppScript (assíncrono)
         const formData = {
           nome: document.getElementById('nome').value,
           whatsapp: whatsapp,
