@@ -505,6 +505,9 @@
     </div>
   </footer>
 
+  <!-- PapaParse CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <script>
     const CART_KEY = 'cartItems';
     const cartCountEl = document.getElementById('cart-count');
@@ -630,42 +633,51 @@
       }
     }
 
+    // Faz fetch do CSV e parse com PapaParse para evitar problemas com vírgulas internas
     fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRpRIMaL2mtK3AyrckDd8DI9cZIWZX17I8bB-oUidxXWa60sD7S1HvHE-9cpPUTFJVSpPY7d7CSIzpc/pub?output=csv')
       .then(res => res.text())
-      .then(csv => {
-        const lines = csv.split('\n').slice(1);
-        const bannerContainer = document.getElementById('banner-scroll');
+      .then(csvText => {
+        // Usa PapaParse para parse robusto
+        const parsed = Papa.parse(csvText, {
+          skipEmptyLines: true,
+        });
+
+        const rows = parsed.data || [];
+
+        // Se houver cabeçalho (assumimos que a primeira linha é cabeçalho), remover
+        const lines = rows.length > 0 ? rows.slice(1) : [];
 
         allBanners = [];
         allProdutos = [];
-        
+
+        // Captura banners da primeira linha de dados (comportamento compatível com o código anterior)
         if (lines.length > 0) {
-          const firstLine = lines[0].split(',');
-          if (firstLine[0]?.trim() && firstLine[0].trim() !== 'Banner 1') {
-            allBanners.push(firstLine[0].trim());
+          const firstLine = lines[0];
+          if (firstLine[0] && String(firstLine[0]).trim() && String(firstLine[0]).trim() !== 'Banner 1') {
+            allBanners.push(String(firstLine[0]).trim());
           }
-          if (firstLine[1]?.trim() && firstLine[1].trim() !== 'Banner 2') {
-            allBanners.push(firstLine[1].trim());
+          if (firstLine[1] && String(firstLine[1]).trim() && String(firstLine[1]).trim() !== 'Banner 2') {
+            allBanners.push(String(firstLine[1]).trim());
           }
         }
 
-        lines.forEach((line, index) => {
-          const cells = line.split(',');
-          const estoque = cells[7]?.trim();
-          
+        lines.forEach((cells, index) => {
+          // cells já é um array tratado pelo PapaParse (considera aspas e vírgulas internas)
+          const estoque = String(cells[7] || '').trim();
+
           if (estoque === '0') return;
-          
-          const productName = cells[2]?.trim();
-          const productImage = cells[3]?.trim();
-          
+
+          const productName = String(cells[2] || '').trim();
+          const productImage = String(cells[3] || '').trim();
+
           if (!productName || !productImage) return;
-          
+
           const product = {
             nome: productName,
             imagem: productImage,
-            descricao: cells[4]?.trim() || '',
-            preco: cells[5]?.trim() || '',
-            mensagem: cells[6]?.trim() || '',
+            descricao: String(cells[4] || '').trim(),
+            preco: String(cells[5] || '').trim(),
+            mensagem: String(cells[6] || '').trim(),
             estoque: estoque
           };
 
@@ -674,7 +686,9 @@
 
         categorizeProducts();
 
+        const bannerContainer = document.getElementById('banner-scroll');
         bannerContainer.innerHTML = '';
+        bannerContainer.classList.remove('single-banner', 'scrolling');
 
         if (allBanners.length === 1) {
           bannerContainer.classList.add('single-banner');
